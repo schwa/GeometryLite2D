@@ -43,7 +43,6 @@ This is a Swift package providing 2D geometry primitives and algorithms. The pac
 - Test files mirror source file structure (e.g., `Polygon.swift` → `PolygonTests.swift`)
 
 ### Common Patterns
-- Epsilon parameters for floating-point comparisons (typically defaulting to `1e-5`)
 - Extensive use of computed properties for derived geometric values
 - Protocol conformances (Equatable, Hashable, Sendable) for all primary types
 

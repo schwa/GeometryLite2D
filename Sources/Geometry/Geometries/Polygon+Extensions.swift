@@ -53,7 +53,7 @@ public extension Polygon {
 
 public extension Polygon {
     /// Returns `true` if the polygon is simple (does not intersect itself).
-    func isSimple(epsilon: CGFloat = 1e-5) -> Bool {
+    func isSimple(absoluteTolerance: CGFloat = 1e-5) -> Bool {
         guard vertices.count >= 3 else { return false }
         for i in 0..<vertices.count {
             let a1 = vertices[i]
@@ -64,7 +64,7 @@ public extension Polygon {
                 }
                 let b1 = vertices[j]
                 let b2 = vertices[(j + 1) % vertices.count]
-                if LineSegment(a1, a2).intersects(LineSegment(b1, b2), absoluteTolerance: epsilon) {
+                if LineSegment(a1, a2).intersects(LineSegment(b1, b2), absoluteTolerance: absoluteTolerance) {
                     return false
                 }
             }

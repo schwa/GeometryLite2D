@@ -110,7 +110,7 @@ func testSimplifiedRemovesClosePoints() {
         CGPoint(x: 1, y: 1),
         CGPoint(x: 0, y: 1)
     ])
-    let simplified = poly.simplified(distanceEpsilon: 1e-2)
+    let simplified = poly.simplified()
     #expect(simplified.vertices.count == 4)
     let expectedVertices = [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: 1)]
     #expect(simplified.vertices == expectedVertices)

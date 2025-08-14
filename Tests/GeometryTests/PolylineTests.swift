@@ -16,7 +16,7 @@ import Testing
     #expect(closed.isClosed())
 }
 
-@Test func testPolylineIsClosedWithEpsilon() {
+@Test func testPolylineIsApproximatelyClosed() {
     let closed = Polyline(vertices: [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 0.001, y: 0.001)])
     #expect(closed.isClosed(absoluteTolerance: 0.01))
     #expect(!closed.isClosed(absoluteTolerance: 0.0001))

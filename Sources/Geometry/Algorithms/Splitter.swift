@@ -19,9 +19,9 @@ extension SplitID: CustomStringConvertible {
 /// Splits all segments at every intersection (including T-junctions).
 /// - Parameters:
 ///   - segments: input segments, each identified by a parent ID
-///   - epsilon: geometric tolerance for merging near-duplicate split params
+///   - absoluteTolerance: geometric tolerance for merging near-duplicate split params
 /// - Returns: subsegments, each identified by `(parent, ordinal)`
-public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegment>], epsilon: CGFloat = 1e-9) -> [Identified<SplitID<ParentID>, LineSegment>] {
+public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegment>], absoluteTolerance: CGFloat = 1e-9) -> [Identified<SplitID<ParentID>, LineSegment>] {
     // Helper: linear interpolation on a segment
     func point(on s: LineSegment, at t: CGFloat) -> CGPoint {
         CGPoint(
@@ -74,20 +74,20 @@ public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegmen
         let s = identifiedSeg.value
         let parentID = identifiedSeg.id
 
-        // sort & dedup with epsilon
-        let ts = uniqueSorted(splitParams[idx], absoluteTolerance: epsilon)
+        // sort & dedup
+        let ts = uniqueSorted(splitParams[idx], absoluteTolerance: absoluteTolerance)
 
         // build consecutive spans
         var ordinal = 0
         for k in 0..<(ts.count - 1) {
             let t0 = ts[k], t1 = ts[k + 1]
             // Avoid zero-length with tolerance
-            if (t1 - t0) <= epsilon { continue }
+            if (t1 - t0).isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) { continue }
 
             let a = point(on: s, at: t0)
             let b = point(on: s, at: t1)
             // Guard against numerical collapse
-            if hypot(b.x - a.x, b.y - a.y) <= Double(epsilon) {
+            if hypot(b.x - a.x, b.y - a.y).isApproximatelyEqual(to: 0, absoluteTolerance: Double(absoluteTolerance)) {
                 continue
             }
 

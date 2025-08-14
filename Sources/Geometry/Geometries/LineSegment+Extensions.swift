@@ -139,10 +139,10 @@ public extension LineSegment {
             self.end.isApproximatelyEqual(to: other.end, absoluteTolerance: absoluteTolerance)
     }
     
-    func isTJunction(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
+    func isTJunction(with other: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         // Check if one of the endpoints of `other` lies on this segment (interior only)
-        let otherStartOnSelf = self.contains(other.start, interior: true, absoluteTolerance: epsilon)
-        let otherEndOnSelf = self.contains(other.end, interior: true, absoluteTolerance: epsilon)
+        let otherStartOnSelf = self.contains(other.start, interior: true, absoluteTolerance: absoluteTolerance)
+        let otherEndOnSelf = self.contains(other.end, interior: true, absoluteTolerance: absoluteTolerance)
         // A T-junction occurs if exactly one endpoint of `other` lies on this segment (interior only)
         return (otherStartOnSelf != otherEndOnSelf) && (otherStartOnSelf || otherEndOnSelf)
     }
