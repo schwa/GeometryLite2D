@@ -51,8 +51,6 @@ public struct HalfEdgeMesh<ID: Hashable> {
 
     // MARK: - Build steps
 
-    private struct PairKey: Hashable { let a: Int; let b: Int }
-
     private mutating func build(from segments: [Identified<ID, LineSegment>]) {
         // 1) Make vertices (exact point hashing is fine given "clean" data)
         var vIndex: [CGPoint: VertexID] = [:]
@@ -65,7 +63,7 @@ public struct HalfEdgeMesh<ID: Hashable> {
         }
 
         // 2) Create 2 half-edges per segment (both directions) and link twins
-        var pendingTwins: [PairKey: HalfEdgeID] = [:] // (u,v) -> he(u->v), to find twin(v->u)
+        var pendingTwins: [Composite<VertexID, VertexID>: HalfEdgeID] = [:] // (u,v) -> he(u->v), to find twin(v->u)
         halfEdges.reserveCapacity(segments.count * 2)
 
         for s in segments {
@@ -89,8 +87,8 @@ public struct HalfEdgeMesh<ID: Hashable> {
             if vertices[b.raw].edge == nil { vertices[b.raw].edge = e1 }
 
             // record for wiring later (optional map; not strictly needed beyond twins)
-            pendingTwins[PairKey(a: a.raw, b: b.raw)] = e0
-            pendingTwins[PairKey(a: b.raw, b: a.raw)] = e1
+            pendingTwins[.init(a, b)] = e0
+            pendingTwins[.init(b, a)] = e1
         }
 
         // 3) For each vertex, sort outgoing edges by angle CCW
