@@ -71,11 +71,11 @@ public struct HalfEdgeMesh<ID: Hashable> {
             let b = vID(for: s.value.end)
             // dir a->b
             let e0 = HalfEdgeID(raw: halfEdges.count)
-            let ang0 = angle(from: vertices[a.raw].p, to: vertices[b.raw].p)
+            let ang0 = vertices[a.raw].p.angle(to: vertices[b.raw].p)
             halfEdges.append(HalfEdge(id: e0, origin: a, twin: nil, next: nil, prev: nil, face: nil, segmentID: s.id, angle: ang0))
             // dir b->a
             let e1 = HalfEdgeID(raw: halfEdges.count)
-            let ang1 = angle(from: vertices[b.raw].p, to: vertices[a.raw].p)
+            let ang1 = vertices[b.raw].p.angle(to: vertices[a.raw].p)
             halfEdges.append(HalfEdge(id: e1, origin: b, twin: nil, next: nil, prev: nil, face: nil, segmentID: s.id, angle: ang1))
 
             // set twins

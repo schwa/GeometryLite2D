@@ -113,7 +113,6 @@ public extension Polygon {
     ///
     /// - Parameter polygons: An array of `Polygon` instances to attempt to merge.
     /// - Returns: A new array of polygons, where each polygon is the result of merging any polygons with shared edges.
-    @available(*, deprecated, message: "Do not use yet. Unit tests failing.")
     static func merge(polygons: [Polygon]) -> [Polygon] {
         var remaining = polygons
         var merged: [Polygon] = []

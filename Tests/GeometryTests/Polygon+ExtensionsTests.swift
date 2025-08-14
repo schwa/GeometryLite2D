@@ -24,7 +24,6 @@ func testWindingClockwise() {
     #expect(poly.winding == .clockwise)
 }
 
-@Test(.disabled())
 func testMergePolygonsRemovesSharedEdge() {
     let poly1 = Polygon([
         CGPoint.zero,

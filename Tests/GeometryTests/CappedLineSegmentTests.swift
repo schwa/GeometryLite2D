@@ -127,7 +127,6 @@ struct CappedLineSegmentTests {
         #expect(endOffsets == (0.5, 0, -0.5))
     }
 
-    @Test(.disabled())
     func testSetPoint() {
         var segment = CappedLineSegment(
             start: CGPoint.zero,
