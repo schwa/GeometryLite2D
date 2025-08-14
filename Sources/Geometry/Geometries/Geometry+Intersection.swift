@@ -3,6 +3,15 @@ import Numerics
 
 // TODO: This file needs a big ol' cleanup
 
+// MARK: - Segment Intersection
+
+public enum SegmentIntersection {
+    case none
+    /// Intersection at a single point. t1/t2 are parameters along s1/s2 in [0,1].
+    case point(p: CGPoint, t1: CGFloat, t2: CGFloat)
+    // If you *do* want to handle collinear overlaps later, add another case.
+}
+
 // MARK: Line
 
 public extension Line {
@@ -23,31 +32,57 @@ public extension Line {
 // MARK: LineSegment
 
 public extension LineSegment {
+    /// Computes the intersection between this line segment and another, returning the intersection point and parameters
+    func segmentIntersection(with other: LineSegment, absoluteTolerance: CGFloat = 1e-10) -> SegmentIntersection {
+        let x1 = start.x, y1 = start.y
+        let x2 = end.x, y2 = end.y
+        let x3 = other.start.x, y3 = other.start.y
+        let x4 = other.end.x, y4 = other.end.y
+        
+        let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        
+        if denom.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
+            return .none  // Parallel or collinear
+        }
+        
+        let t1 = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+        let t2 = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+        
+        if t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1 {
+            let x = x1 + t1 * (x2 - x1)
+            let y = y1 + t1 * (y2 - y1)
+            return .point(p: CGPoint(x: x, y: y), t1: t1, t2: t2)
+        }
+        
+        return .none
+    }
+    
     func intersects(_ lineSegment: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
-        let p = start
-        let q = lineSegment.start
-        let r = end - start
-        let s = lineSegment.end - lineSegment.start
-
-        let rxs = r.cross(s)
-        let qpxr = (q - p).cross(r)
-
-        // Check if lines are parallel
-        if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
-            // Check if they are collinear
-            if qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
+        // First check using the centralized implementation
+        switch segmentIntersection(with: lineSegment, absoluteTolerance: absoluteTolerance) {
+        case .point:
+            return true
+        case .none:
+            // The current segmentIntersection doesn't handle collinear overlaps
+            // so we need to check for that case separately
+            let p = start
+            let q = lineSegment.start
+            let r = end - start
+            let s = lineSegment.end - lineSegment.start
+            
+            let rxs = r.cross(s)
+            let qpxr = (q - p).cross(r)
+            
+            // Check if lines are collinear
+            if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) &&
+               qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
                 // Check for overlap
                 let t0 = (q - p).dot(r) / r.dot(r)
                 let t1 = t0 + s.dot(r) / r.dot(r)
                 return (t0 >= 0 && t0 <= 1) || (t1 >= 0 && t1 <= 1) || (t0 < 0 && t1 > 1) || (t1 < 0 && t0 > 1)
             }
-            return false // Parallel but not collinear
+            return false
         }
-
-        let t = (q - p).cross(s) / rxs
-        let u = (q - p).cross(r) / rxs
-
-        return t >= -absoluteTolerance && t <= 1 + absoluteTolerance && u >= -absoluteTolerance && u <= 1 + absoluteTolerance
     }
 
     /// Perform intersection as if self and target are convert to infinite lines
@@ -85,27 +120,13 @@ public extension LineSegment {
     
     /// Returns the intersection point between two line segments, if any
     func intersection(_ other: LineSegment, absoluteTolerance: CGFloat = 1e-10) -> CGPoint? {
-        let x1 = start.x, y1 = start.y
-        let x2 = end.x, y2 = end.y
-        let x3 = other.start.x, y3 = other.start.y
-        let x4 = other.end.x, y4 = other.end.y
-        
-        let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        
-        if denom.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
+        // Use the centralized implementation
+        switch segmentIntersection(with: other, absoluteTolerance: absoluteTolerance) {
+        case .none:
             return nil
+        case let .point(p, _, _):
+            return p
         }
-        
-        let t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
-        let u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
-        
-        if t >= 0 && t <= 1 && u >= 0 && u <= 1 {
-            let x = x1 + t * (x2 - x1)
-            let y = y1 + t * (y2 - y1)
-            return CGPoint(x: x, y: y)
-        }
-        
-        return nil
     }
     
     /// Check if this segment overlaps with another segment (collinear and share points)

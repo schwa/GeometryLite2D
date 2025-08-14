@@ -54,7 +54,7 @@ public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegmen
             let s1 = segments[i].value
             let s2 = segments[j].value
 
-            switch segmentIntersection(s1, s2) {
+            switch s1.segmentIntersection(with: s2) {
             case .none:
                 break
 

@@ -2,42 +2,17 @@ import CoreGraphics
 import Foundation
 import Numerics
 
-// MARK: - Segment Intersection
-
-public enum SegmentIntersection {
-    case none
-    /// Intersection at a single point. t1/t2 are parameters along s1/s2 in [0,1].
-    case point(p: CGPoint, t1: CGFloat, t2: CGFloat)
-    // If you *do* want to handle collinear overlaps later, add another case.
-}
+// MARK: - Deprecated functions
 
 /// Computes the intersection between two line segments, returning the intersection point and parameters
+@available(*, deprecated, message: "Use LineSegment.segmentIntersection(with:absoluteTolerance:) instead")
 public func segmentIntersection(_ s1: LineSegment, _ s2: LineSegment, absoluteTolerance: CGFloat = 1e-10) -> SegmentIntersection {
-    let x1 = s1.start.x, y1 = s1.start.y
-    let x2 = s1.end.x, y2 = s1.end.y
-    let x3 = s2.start.x, y3 = s2.start.y
-    let x4 = s2.end.x, y4 = s2.end.y
-
-    let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-
-    if denom.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
-        return .none  // Parallel or collinear
-    }
-
-    let t1 = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
-    let t2 = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
-
-    if t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1 {
-        let x = x1 + t1 * (x2 - x1)
-        let y = y1 + t1 * (y2 - y1)
-        return .point(p: CGPoint(x: x, y: y), t1: t1, t2: t2)
-    }
-
-    return .none
+    s1.segmentIntersection(with: s2, absoluteTolerance: absoluteTolerance)
 }
 
 // MARK: - Geometry Helpers
 
+// TODO: Move
 public func angle(from p: CGPoint, to q: CGPoint) -> CGFloat {
     atan2(q.y - p.y, q.x - p.x)
 }
