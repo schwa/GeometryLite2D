@@ -139,10 +139,10 @@ public extension Polygon {
         let edges = segments
         for edge in edges {
             // Check both directions since segments might be oriented differently
-            if (GeometryUtils.pointsEqual(segment.start, edge.start) &&
-                    GeometryUtils.pointsEqual(segment.end, edge.end)) ||
-                (GeometryUtils.pointsEqual(segment.start, edge.end) &&
-                    GeometryUtils.pointsEqual(segment.end, edge.start)) {
+            if (segment.start.isApproximatelyEqual(to: edge.start, epsilon: 0.001) &&
+                    segment.end.isApproximatelyEqual(to: edge.end, epsilon: 0.001)) ||
+                (segment.start.isApproximatelyEqual(to: edge.end, epsilon: 0.001) &&
+                    segment.end.isApproximatelyEqual(to: edge.start, epsilon: 0.001)) {
                 // This segment IS a polygon edge - consider it on boundary, not inside
                 return false
             }
@@ -186,10 +186,10 @@ public extension Polygon {
             // Check if segment intersects this edge
             if let intersection = segment.intersection(edge) {
                 // Check if intersection is at a shared vertex
-                let isSharedVertex = GeometryUtils.pointsEqual(intersection, segment.start) ||
-                    GeometryUtils.pointsEqual(intersection, segment.end) ||
-                    GeometryUtils.pointsEqual(intersection, edge.start) ||
-                    GeometryUtils.pointsEqual(intersection, edge.end)
+                let isSharedVertex = intersection.isApproximatelyEqual(to: segment.start, epsilon: 0.001) ||
+                    intersection.isApproximatelyEqual(to: segment.end, epsilon: 0.001) ||
+                    intersection.isApproximatelyEqual(to: edge.start, epsilon: 0.001) ||
+                    intersection.isApproximatelyEqual(to: edge.end, epsilon: 0.001)
                 
                 if !isSharedVertex {
                     // Segment crosses the polygon boundary at a non-vertex point
