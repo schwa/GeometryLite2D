@@ -77,7 +77,7 @@ import Testing
 @Test func testCGRectIntersectsLineSegment() {
     let rect = CGRect(x: 0, y: 0, width: 2, height: 2)
     let seg1 = LineSegment(start: CGPoint(x: -1, y: 1), end: CGPoint(x: 3, y: 1))
-    #expect(rect.intersects(seg1))
+    #expect(rect.intersects(with: seg1))
     let seg2 = LineSegment(start: CGPoint(x: -1, y: -1), end: CGPoint(x: -1, y: 3))
-    #expect(!rect.intersects(seg2))
+    #expect(!rect.intersects(with: seg2))
 }
