@@ -1,3 +1,7 @@
+
+excluded:
+  - .build
+
 only_rules:
   - accessibility_label_for_image
   - accessibility_trait_for_button
@@ -28,7 +32,7 @@ only_rules:
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
   - contains_over_range_nil_comparison
-  - contrasted_opening_brace # 1209 violations (fixable)
+#  - contrasted_opening_brace # 1209 violations (fixable)
   - control_statement
 #  - convenience_type # 1 violations
   - custom_rules
