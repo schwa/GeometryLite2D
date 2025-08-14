@@ -1,4 +1,5 @@
 import CoreGraphics
+import Numerics
 
 // MARK: - LineSegment
 
@@ -57,7 +58,7 @@ public extension LineSegment {
         let cross1 = thisVec.x * otherStartVec.y - thisVec.y * otherStartVec.x
         let cross2 = thisVec.x * otherEndVec.y - thisVec.y * otherEndVec.x
         
-        if abs(cross1) > tolerance || abs(cross2) > tolerance {
+        if !cross1.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) || !cross2.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
             return false // Not collinear
         }
         
@@ -84,7 +85,7 @@ public extension Ray {
     func contains(_ point: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
         let toPoint = CGVector(dx: point.x - origin.x, dy: point.y - origin.y)
         let cross = direction.dx * toPoint.dy - direction.dy * toPoint.dx
-        if abs(cross) > tolerance {
+        if !cross.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
             return false
         }
         let dot = direction.dx * toPoint.dx + direction.dy * toPoint.dy
@@ -99,7 +100,7 @@ public extension Line {
         let dx = test.x - point.x
         let dy = test.y - point.y
         let cross = dx * direction.dy - dy * direction.dx
-        return abs(cross) <= tolerance
+        return cross.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance)
     }
 }
 
@@ -204,7 +205,7 @@ public extension Polygon {
     
     private func pointIsOnLineSegment(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> Bool {
         let cross = (b.y - a.y) * (p.x - a.x) - (b.x - a.x) * (p.y - a.y)
-        if abs(cross) > CGFloat.ulpOfOne {
+        if !cross.isApproximatelyEqual(to: 0, absoluteTolerance: CGFloat.ulpOfOne) {
             return false
         }
 

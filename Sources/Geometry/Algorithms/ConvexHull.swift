@@ -1,4 +1,5 @@
 import CoreGraphics
+import Numerics
 
 /// Computes the convex hull using the default algorithm (Andrew's monotone chain)
 public func convexHull(_ points: [CGPoint]) -> [CGPoint] {
@@ -72,7 +73,7 @@ public func convexHullGrahamScan(_ points: [CGPoint]) -> [CGPoint] {
     let sorted = points.filter { $0 != start }.sorted { p1, p2 in
         let angle1 = atan2(p1.y - start.y, p1.x - start.x)
         let angle2 = atan2(p2.y - start.y, p2.x - start.x)
-        if abs(angle1 - angle2) < 1e-10 {
+        if angle1.isApproximatelyEqual(to: angle2, absoluteTolerance: 1e-10) {
             // If angles are same, closer point comes first
             let dist1 = pow(p1.x - start.x, 2) + pow(p1.y - start.y, 2)
             let dist2 = pow(p2.x - start.x, 2) + pow(p2.y - start.y, 2)

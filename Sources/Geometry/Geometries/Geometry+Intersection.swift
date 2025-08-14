@@ -1,4 +1,5 @@
 import CoreGraphics
+import Numerics
 
 // TODO: This file needs a big ol' cleanup
 
@@ -10,7 +11,7 @@ public extension Line {
         let dy = other.point.y - point.y
 
         let det = direction.dx * other.direction.dy - direction.dy * other.direction.dx
-        if abs(det) < epsilon {
+        if det.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
             return nil // lines are parallel
         }
 
@@ -32,9 +33,9 @@ public extension LineSegment {
         let qpxr = (q - p).cross(r)
 
         // Check if lines are parallel
-        if abs(rxs) < epsilon {
+        if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
             // Check if they are collinear
-            if abs(qpxr) < epsilon {
+            if qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
                 // Check for overlap
                 let t0 = (q - p).dot(r) / r.dot(r)
                 let t1 = t0 + s.dot(r) / r.dot(r)
@@ -62,7 +63,7 @@ public extension LineSegment {
         let s = end - start
 
         let rCrossS = r.dx * s.y - r.dy * s.x
-        if abs(rCrossS) < epsilon {
+        if rCrossS.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
             // Lines are parallel or colinear
             return nil
         }
@@ -91,7 +92,7 @@ public extension LineSegment {
         
         let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
         
-        if abs(denom) < 1e-10 {
+        if denom.isApproximatelyEqual(to: 0, absoluteTolerance: 1e-10) {
             return nil
         }
         
@@ -128,7 +129,7 @@ public extension Ray {
         let dy = other.origin.y - origin.y
 
         let det = direction.dx * other.direction.dy - direction.dy * other.direction.dx
-        if abs(det) < epsilon {
+        if det.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
             return nil // Parallel rays
         }
 
@@ -160,7 +161,7 @@ public extension Ray {
         let qMinusP = q - p
 
         // If cross product is zero, lines are parallel (or colinear)
-        if abs(rCrossS) < .ulpOfOne {
+        if rCrossS.isApproximatelyEqual(to: 0, absoluteTolerance: .ulpOfOne) {
             return nil
         }
 
@@ -226,7 +227,7 @@ public extension CGRect {
 // TODO: Move to extension on CGPoint perhaps?
 public func intersectionOfLines(_ p1: CGPoint, _ d1: CGPoint, _ p2: CGPoint, _ d2: CGPoint) -> CGPoint? {
     let cross = d1.x * d2.y - d1.y * d2.x
-    guard abs(cross) >= 1e-6 else { return nil }
+    guard !cross.isApproximatelyEqual(to: 0, absoluteTolerance: 1e-6) else { return nil }
 
     let diff = p2 - p1
     let t = (diff.x * d2.y - diff.y * d2.x) / cross

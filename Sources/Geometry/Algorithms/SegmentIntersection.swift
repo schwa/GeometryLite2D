@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import Numerics
 
 // MARK: - Segment Intersection
 
@@ -19,7 +20,7 @@ public func segmentIntersection(_ s1: LineSegment, _ s2: LineSegment) -> Segment
 
     let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
 
-    if abs(denom) < 1e-10 {
+    if denom.isApproximatelyEqual(to: 0, absoluteTolerance: 1e-10) {
         return .none  // Parallel or collinear
     }
 
