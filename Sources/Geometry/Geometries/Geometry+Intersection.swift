@@ -84,7 +84,7 @@ public extension LineSegment {
     }
     
     /// Returns the intersection point between two line segments, if any
-    func intersection(_ other: LineSegment, epsilon: CGFloat = 1e-10) -> CGPoint? {
+    func intersection(_ other: LineSegment, absoluteTolerance: CGFloat = 1e-10) -> CGPoint? {
         let x1 = start.x, y1 = start.y
         let x2 = end.x, y2 = end.y
         let x3 = other.start.x, y3 = other.start.y
@@ -92,7 +92,7 @@ public extension LineSegment {
         
         let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
         
-        if denom.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+        if denom.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return nil
         }
         
@@ -225,9 +225,9 @@ public extension CGRect {
 // MARK: Misc
 
 // TODO: Move to extension on CGPoint perhaps?
-public func intersectionOfLines(_ p1: CGPoint, _ d1: CGPoint, _ p2: CGPoint, _ d2: CGPoint, epsilon: CGFloat = 1e-6) -> CGPoint? {
+public func intersectionOfLines(_ p1: CGPoint, _ d1: CGPoint, _ p2: CGPoint, _ d2: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> CGPoint? {
     let cross = d1.x * d2.y - d1.y * d2.x
-    guard !cross.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) else { return nil }
+    guard !cross.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else { return nil }
 
     let diff = p2 - p1
     let t = (diff.x * d2.y - diff.y * d2.x) / cross
