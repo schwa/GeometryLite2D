@@ -86,13 +86,9 @@ public func thicken(junction: Junction, lineWidth: CGFloat, miterLimit _: CGFloa
         let line1 = Line(p1: center, p2: currentVertex).parallelTo(lineWidth / 2)
         let line2 = Line(p1: center, p2: nextVertex).parallelTo(-lineWidth / 2)
 
-        GeometryLog.shared.log(geometries: [.line(line1), .line(line2)])
-
         guard let intersection = line1.intersection(with: line2) else {
             continue
         }
-
-        GeometryLog.shared.log(geometries: [.point(intersection)])
 
         result[currentIndex].set(point: intersection, at: 2, endPoint: center)
         result[currentIndex].startOffsets.2 = max(result[currentIndex].startOffsets.2, -result[currentIndex].segment.length)
