@@ -3,6 +3,7 @@ import CoreGraphics
 #else
 import Foundation
 #endif
+import Numerics
 
 #if canImport(Glibc)
 import Glibc
@@ -111,10 +112,10 @@ public extension CGPoint {
         return a * d - b * c
     }
 
-    static func areColinear(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, epsilon: CGFloat = 1e-6) -> Bool {
+    static func areColinear(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> Bool {
         // Compute the area of the triangle formed by the three points using the shoelace formula.
         let area = abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y))
-        return area < epsilon
+        return area.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
     }
 
     static func min(_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {

@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import Numerics
 
 // Stable child IDs derived from parent IDs so repeated runs are deterministic.
 public struct SplitID<ParentID: Hashable>: Hashable {
@@ -29,14 +30,14 @@ public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegmen
         )
     }
 
-    // Helper: numerical dedup with epsilon
-    func uniqueSorted(_ values: [CGFloat], eps: CGFloat) -> [CGFloat] {
+    // Helper: numerical dedup with absoluteTolerance
+    func uniqueSorted(_ values: [CGFloat], absoluteTolerance: CGFloat) -> [CGFloat] {
         let sorted = values.sorted()
         var out: [CGFloat] = []
         out.reserveCapacity(sorted.count)
         for v in sorted {
             if let last = out.last {
-                if abs(v - last) > eps { out.append(v) }
+                if !v.isApproximatelyEqual(to: last, absoluteTolerance: absoluteTolerance) { out.append(v) }
             } else {
                 out.append(v)
             }
@@ -74,7 +75,7 @@ public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegmen
         let parentID = identifiedSeg.id
 
         // sort & dedup with epsilon
-        let ts = uniqueSorted(splitParams[idx], eps: epsilon)
+        let ts = uniqueSorted(splitParams[idx], absoluteTolerance: epsilon)
 
         // build consecutive spans
         var ordinal = 0

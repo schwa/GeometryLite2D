@@ -3,6 +3,7 @@ import CoreGraphics
 #else
 import Foundation
 #endif
+import Numerics
 
 // MARK: - Computed Properties
 
@@ -22,14 +23,14 @@ public extension Polyline {
 // MARK: - Factory Methods
 
 public extension Polyline {
-    static func polylines(from lineSegments: [LineSegment], epsilon: CGFloat = 0.0) -> [Polyline] {
-        // Helper to compare points with optional epsilon
+    static func polylines(from lineSegments: [LineSegment], absoluteTolerance: CGFloat = 0.0) -> [Polyline] {
+        // Helper to compare points with optional absoluteTolerance
         // TODO: Just use isApproximatelyEqual
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {
-            if epsilon == 0 {
+            if absoluteTolerance == 0 {
                 return a == b
             }
-            return a.distance(to: b) <= epsilon
+            return a.distance(to: b).isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
         }
         
         var remainingSegments = lineSegments

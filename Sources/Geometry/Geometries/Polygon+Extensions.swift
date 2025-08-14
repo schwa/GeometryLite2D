@@ -3,6 +3,7 @@ import CoreGraphics
 #else
 import Foundation
 #endif
+import Numerics
 
 // MARK: - Factory Methods
 
@@ -202,11 +203,11 @@ public extension Polygon {
             let current = vertices[i]
             let next = vertices[(i + 1) % count]
             
-            if let last = result.last, last.distance(to: current) < distanceEpsilon {
+            if let last = result.last, last.distance(to: current).isApproximatelyEqual(to: 0, absoluteTolerance: distanceEpsilon) {
                 continue
             }
             
-            if CGPoint.areColinear(prev, current, next, epsilon: colinearEpsilon) {
+            if CGPoint.areColinear(prev, current, next, absoluteTolerance: colinearEpsilon) {
                 continue
             }
             
@@ -214,7 +215,7 @@ public extension Polygon {
         }
         
         // Cleanup degenerate loop
-        if result.count >= 2, result.first!.distance(to: result.last!) < distanceEpsilon {
+        if result.count >= 2, result.first!.distance(to: result.last!).isApproximatelyEqual(to: 0, absoluteTolerance: distanceEpsilon) {
             result.removeFirst()
         }
         
