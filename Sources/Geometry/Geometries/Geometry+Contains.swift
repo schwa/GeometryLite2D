@@ -134,15 +134,15 @@ public extension Polygon {
     }
 
     /// Checks if a line segment is contained within or on the boundary of the polygon
-    func contains(_ segment: LineSegment, vertexTolerance: CGFloat = 1e-3) -> Bool {
+    func contains(_ segment: LineSegment, absoluteTolerance: CGFloat = 1e-3) -> Bool {
         // Fast path: Check if this segment is exactly one of the polygon's edges
         let edges = segments
         for edge in edges {
             // Check both directions since segments might be oriented differently
-            if (segment.start.isApproximatelyEqual(to: edge.start, absoluteTolerance: vertexTolerance) &&
-                    segment.end.isApproximatelyEqual(to: edge.end, absoluteTolerance: vertexTolerance)) ||
-                (segment.start.isApproximatelyEqual(to: edge.end, absoluteTolerance: vertexTolerance) &&
-                    segment.end.isApproximatelyEqual(to: edge.start, absoluteTolerance: vertexTolerance)) {
+            if (segment.start.isApproximatelyEqual(to: edge.start, absoluteTolerance: absoluteTolerance) &&
+                    segment.end.isApproximatelyEqual(to: edge.end, absoluteTolerance: absoluteTolerance)) ||
+                (segment.start.isApproximatelyEqual(to: edge.end, absoluteTolerance: absoluteTolerance) &&
+                    segment.end.isApproximatelyEqual(to: edge.start, absoluteTolerance: absoluteTolerance)) {
                 // This segment IS a polygon edge - consider it on boundary, not inside
                 return false
             }
@@ -152,7 +152,7 @@ public extension Polygon {
         // This handles partial edges and segments that run along the boundary
         for edge in edges {
             // Check if both endpoints of segment lie on this edge
-            if edge.contains(segment.start, absoluteTolerance: 1e-5) && edge.contains(segment.end, absoluteTolerance: 1e-5) {
+            if edge.contains(segment.start, absoluteTolerance: absoluteTolerance) && edge.contains(segment.end, absoluteTolerance: absoluteTolerance) {
                 // Segment lies on the polygon boundary
                 return false
             }
@@ -160,10 +160,10 @@ public extension Polygon {
         
         // Check boundary status of endpoints
         let startOnBoundary = edges.contains { edge in
-            edge.contains(segment.start, absoluteTolerance: 1e-5)
+            edge.contains(segment.start, absoluteTolerance: absoluteTolerance)
         }
         let endOnBoundary = edges.contains { edge in
-            edge.contains(segment.end, absoluteTolerance: 1e-5)
+            edge.contains(segment.end, absoluteTolerance: absoluteTolerance)
         }
         
         // If either endpoint is on the boundary, consider it not contained
@@ -186,10 +186,10 @@ public extension Polygon {
             // Check if segment intersects this edge
             if let intersection = segment.intersection(edge) {
                 // Check if intersection is at a shared vertex
-                let isSharedVertex = intersection.isApproximatelyEqual(to: segment.start, absoluteTolerance: vertexTolerance) ||
-                    intersection.isApproximatelyEqual(to: segment.end, absoluteTolerance: vertexTolerance) ||
-                    intersection.isApproximatelyEqual(to: edge.start, absoluteTolerance: vertexTolerance) ||
-                    intersection.isApproximatelyEqual(to: edge.end, absoluteTolerance: vertexTolerance)
+                let isSharedVertex = intersection.isApproximatelyEqual(to: segment.start, absoluteTolerance: absoluteTolerance) ||
+                    intersection.isApproximatelyEqual(to: segment.end, absoluteTolerance: absoluteTolerance) ||
+                    intersection.isApproximatelyEqual(to: edge.start, absoluteTolerance: absoluteTolerance) ||
+                    intersection.isApproximatelyEqual(to: edge.end, absoluteTolerance: absoluteTolerance)
                 
                 if !isSharedVertex {
                     // Segment crosses the polygon boundary at a non-vertex point

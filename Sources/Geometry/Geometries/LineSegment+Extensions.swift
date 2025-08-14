@@ -47,8 +47,8 @@ public extension LineSegment {
         }
     }
     
-    func split(at point: CGPoint) -> [LineSegment] {
-        if !contains(point, absoluteTolerance: 1e-5) {
+    func split(at point: CGPoint, absoluteTolerance: CGFloat = 1e-5) -> [LineSegment] {
+        if !contains(point, absoluteTolerance: absoluteTolerance) {
             return [self]
         }
         if point == start || point == end {
