@@ -5,22 +5,32 @@ import PackageDescription
 
 let package = Package(
     name: "GeometryLite2D",
+    platforms: [
+        .macOS(.v15),
+        .iOS(.v18),
+    ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "GeometryLite2D",
-            targets: ["GeometryLite2D"]
+            name: "Geometry",
+            targets: ["Geometry"]
         ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "GeometryLite2D"
+            name: "Geometry",
+            dependencies: [
+                .product(name: "Collections", package: "swift-collections"),
+            ]
         ),
         .testTarget(
-            name: "GeometryLite2DTests",
-            dependencies: ["GeometryLite2D"]
+            name: "GeometryTests",
+            dependencies: ["Geometry"]
         ),
     ]
 )
