@@ -10,4 +10,13 @@ public struct Circle {
     }
 }
 
+extension Circle: Equatable {
+}
+
+extension Circle: Hashable {
+}
+
+extension Circle: Sendable {
+}
+
 public typealias Circle_ = Circle

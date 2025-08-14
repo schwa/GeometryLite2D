@@ -1,6 +1,6 @@
 import CoreGraphics
 
-public struct UndirectedLineSegment: Hashable, Sendable {
+public struct UndirectedLineSegment {
     let v0: CGPoint
     let v1: CGPoint
 
@@ -13,4 +13,13 @@ public struct UndirectedLineSegment: Hashable, Sendable {
             self.v1 = v0
         }
     }
+}
+
+extension UndirectedLineSegment: Equatable {
+}
+
+extension UndirectedLineSegment: Hashable {
+}
+
+extension UndirectedLineSegment: Sendable {
 }

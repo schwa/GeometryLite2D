@@ -11,5 +11,11 @@ public struct Line {
     }
 }
 
+extension Line: Equatable {
+}
+
+extension Line: Hashable {
+}
+
 extension Line: Sendable {
 }

@@ -24,6 +24,12 @@ extension Junction: Equatable {
     }
 }
 
+extension Junction: Hashable {
+}
+
+extension Junction: Sendable {
+}
+
 public extension Junction {
     func ordered() -> Junction {
         Junction(center: center, vertices: vertices.sorted { lhs, rhs in

@@ -36,9 +36,9 @@ import SwiftUI
  - `square`: A square cap that extends half the width beyond the segment.
  - `mitered`: A cap with three points forming a mitered edge.
  */
-public struct CappedLineSegment: Equatable {
-    public enum Cap: Equatable {
-        public enum BevelVertex: Equatable {
+public struct CappedLineSegment: Equatable, Hashable {
+    public enum Cap: Equatable, Hashable {
+        public enum BevelVertex: Equatable, Hashable {
             case first
             case second
         }

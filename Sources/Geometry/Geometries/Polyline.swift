@@ -15,5 +15,8 @@ public struct Polyline {
 extension Polyline: Equatable {
 }
 
+extension Polyline: Hashable {
+}
+
 extension Polyline: Sendable {
 }

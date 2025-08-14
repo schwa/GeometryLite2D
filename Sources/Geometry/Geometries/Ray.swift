@@ -11,5 +11,11 @@ public struct Ray {
     }
 }
 
+extension Ray: Equatable {
+}
+
+extension Ray: Hashable {
+}
+
 extension Ray: Sendable {
 }
