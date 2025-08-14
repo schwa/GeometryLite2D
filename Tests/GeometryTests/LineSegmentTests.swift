@@ -2,12 +2,6 @@ import CoreGraphics
 import Geometry
 import Testing
 
-fileprivate extension CGPoint {
-    func isApproximatelyEqual(to other: CGPoint, epsilon: CGFloat = 0.0001) -> Bool {
-        abs(x - other.x) <= epsilon && abs(y - other.y) <= epsilon
-    }
-}
-
 @Test func testLineSegmentInitAndProperties() {
     let startPoint = CGPoint.zero
     let endPoint = CGPoint(x: 4, y: 0)
@@ -46,5 +40,5 @@ fileprivate extension CGPoint {
     let directionVector = CGVector(dx: 1, dy: 0)
     let segment = LineSegment(center: centerPoint, width: segmentWidth, direction: directionVector)
     #expect(segment.length == 4)
-    #expect(segment.mid.isApproximatelyEqual(to: centerPoint))
+    #expect(segment.mid.isApproximatelyEqual(to: centerPoint, epsilon: 0.0001))
 }
