@@ -48,7 +48,7 @@ public extension LineSegment {
     }
     
     func split(at point: CGPoint) -> [LineSegment] {
-        if !contains(point, epsilon: 1e-5) {
+        if !contains(point, absoluteTolerance: 1e-5) {
             return [self]
         }
         if point == start || point == end {
@@ -141,8 +141,8 @@ public extension LineSegment {
     
     func isTJunction(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
         // Check if one of the endpoints of `other` lies on this segment (interior only)
-        let otherStartOnSelf = self.contains(other.start, interior: true, epsilon: epsilon)
-        let otherEndOnSelf = self.contains(other.end, interior: true, epsilon: epsilon)
+        let otherStartOnSelf = self.contains(other.start, interior: true, absoluteTolerance: epsilon)
+        let otherEndOnSelf = self.contains(other.end, interior: true, absoluteTolerance: epsilon)
         // A T-junction occurs if exactly one endpoint of `other` lies on this segment (interior only)
         return (otherStartOnSelf != otherEndOnSelf) && (otherStartOnSelf || otherEndOnSelf)
     }

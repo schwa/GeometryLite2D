@@ -27,7 +27,7 @@ public func resolveTJunctions(segments: [LineSegment], epsilon: CGFloat, maxIter
                 for (_, otherSegments) in segmentMap {
                     for other in otherSegments {
                         for point in [other.start, other.end] {
-                            if segment.contains(point, interior: true, epsilon: epsilon) {
+                            if segment.contains(point, interior: true, absoluteTolerance: epsilon) {
                                 let splitResult = splits.flatMap { $0.split(at: point) }
                                 if splitResult.count > 1 {
                                     changed = true

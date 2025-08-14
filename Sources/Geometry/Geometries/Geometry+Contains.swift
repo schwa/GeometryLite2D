@@ -4,31 +4,31 @@ import Numerics
 // MARK: - LineSegment
 
 public extension LineSegment {
-    func contains(_ point: CGPoint, epsilon: CGFloat = 1e-5) -> Bool {
+    func contains(_ point: CGPoint, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         let vectorToPoint = point - start
         let direction = end - start
         let length = direction.length
         
         // Handle degenerate case
-        guard length > epsilon else {
-            return (point - start).length <= epsilon
+        guard !length.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else {
+            return (point - start).length.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
         }
         
         let axis = direction.normalized
         let projectionLength = vectorToPoint.dot(axis)
         
         // Projected point must lie between 0 and segment length
-        guard projectionLength >= -epsilon, projectionLength <= length + epsilon else {
+        guard projectionLength >= -absoluteTolerance, projectionLength <= length + absoluteTolerance else {
             return false
         }
         
         // Compute the closest point on the segment
         let projectedPoint = start + axis * projectionLength
-        return (projectedPoint - point).length <= epsilon
+        return (projectedPoint - point).length.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
     }
     
-    func contains(_ point: CGPoint, interior: Bool, epsilon: CGFloat = 1e-5) -> Bool {
-        contains(point, epsilon: epsilon) && (!interior || (point != start && point != end))
+    func contains(_ point: CGPoint, interior: Bool, absoluteTolerance: CGFloat = 1e-5) -> Bool {
+        contains(point, absoluteTolerance: absoluteTolerance) && (!interior || (point != start && point != end))
     }
     
     func contains(_ point: CGPoint, within radius: CGFloat) -> Bool {
@@ -63,7 +63,7 @@ public extension LineSegment {
         
         // Check if both endpoints are within the segment bounds
         let thisLength = sqrt(thisVec.x * thisVec.x + thisVec.y * thisVec.y)
-        if thisLength < tolerance {
+        if thisLength.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
             // Degenerate segment
             return false
         }
@@ -152,7 +152,7 @@ public extension Polygon {
         // This handles partial edges and segments that run along the boundary
         for edge in edges {
             // Check if both endpoints of segment lie on this edge
-            if edge.contains(segment.start, epsilon: 1e-5) && edge.contains(segment.end, epsilon: 1e-5) {
+            if edge.contains(segment.start, absoluteTolerance: 1e-5) && edge.contains(segment.end, absoluteTolerance: 1e-5) {
                 // Segment lies on the polygon boundary
                 return false
             }
@@ -160,10 +160,10 @@ public extension Polygon {
         
         // Check boundary status of endpoints
         let startOnBoundary = edges.contains { edge in
-            edge.contains(segment.start, epsilon: 1e-5)
+            edge.contains(segment.start, absoluteTolerance: 1e-5)
         }
         let endOnBoundary = edges.contains { edge in
-            edge.contains(segment.end, epsilon: 1e-5)
+            edge.contains(segment.end, absoluteTolerance: 1e-5)
         }
         
         // If either endpoint is on the boundary, consider it not contained

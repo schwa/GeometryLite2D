@@ -202,7 +202,7 @@ public extension Ray {
 // MARK: -
 
 public extension CGRect {
-    // TODO: Add epsilon
+    // TODO: Use isApproximatelyEqual.
     func intersects(with lineSegment: LineSegment) -> Bool {
         // 1. If either point is inside the rect, the segment intersects
         if self.contains(lineSegment.start) || self.contains(lineSegment.end) {
