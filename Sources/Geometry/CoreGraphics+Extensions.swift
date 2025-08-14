@@ -76,6 +76,27 @@ public extension CGPoint {
     func distance(to point: CGPoint) -> CGFloat {
         (self - point).length
     }
+    
+    /// Calculate the angle from this point to another point
+    func angle(to other: CGPoint) -> CGFloat {
+        atan2(other.y - y, other.x - x)
+    }
+    
+    /// Calculate the distance from this point to a line segment
+    func distance(to segment: LineSegment) -> CGFloat {
+        let dx = segment.end.x - segment.start.x
+        let dy = segment.end.y - segment.start.y
+        let lengthSquared = dx * dx + dy * dy
+        
+        if lengthSquared == 0 {
+            return distance(to: segment.start)
+        }
+        
+        let t = max(0, min(1, ((x - segment.start.x) * dx + (y - segment.start.y) * dy) / lengthSquared))
+        let projection = CGPoint(x: segment.start.x + t * dx, y: segment.start.y + t * dy)
+        
+        return distance(to: projection)
+    }
 
     static prefix func - (point: CGPoint) -> CGPoint {
         CGPoint(x: -point.x, y: -point.y)
