@@ -41,13 +41,13 @@ struct JunctionTests {
 
     @Test
     func testFindJunctionsWithSingleSegment() {
-        let epsilon: CGFloat = 0.01
+        let absoluteTolerance: CGFloat = 0.01
 
         // Define a single line segment
         let segment = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment], absoluteTolerance: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment], absoluteTolerance: absoluteTolerance)
 
         // Validate results
         #expect(junctions.isEmpty)
@@ -55,14 +55,14 @@ struct JunctionTests {
 
     @Test
     func testFindJunctionsWithTwoSegmentsSharingVertex() {
-        let epsilon: CGFloat = 0.01
+        let absoluteTolerance: CGFloat = 0.01
 
         // Define two line segments sharing a common vertex
         let segment1 = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
         let segment2 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 2, y: 0))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2], absoluteTolerance: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2], absoluteTolerance: absoluteTolerance)
 
         // Validate results
         #expect(junctions.count == 1)
@@ -76,7 +76,7 @@ struct JunctionTests {
 
     @Test
     func testFindJunctionsWithTShape() {
-        let epsilon: CGFloat = 0.01
+        let absoluteTolerance: CGFloat = 0.01
 
         // Define three line segments forming a T-junction
         let segment1 = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
@@ -84,7 +84,7 @@ struct JunctionTests {
         let segment3 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 1, y: 2))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: absoluteTolerance)
 
         // Validate results
         #expect(junctions.count == 1)
@@ -99,7 +99,7 @@ struct JunctionTests {
 
     @Test
     func testFindJunctionsWithTriangle() {
-        let epsilon: CGFloat = 0.01
+        let absoluteTolerance: CGFloat = 0.01
 
         // Define three line segments forming a triangle
         let segment1 = LineSegment(start: [0, 0], end: [1, 1])
@@ -107,7 +107,7 @@ struct JunctionTests {
         let segment3 = LineSegment(start: [2, 0], end: [0, 0])
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: absoluteTolerance)
 
         // Validate results
         #expect(junctions.count == 3)
@@ -128,7 +128,7 @@ struct JunctionTests {
 
     @Test
     func testFindJunctionsOutputOrderIsStable() {
-        let epsilon: CGFloat = 0.01
+        let absoluteTolerance: CGFloat = 0.01
 
         // Define line segments forming a triangle
         let segment1 = LineSegment(start: [0, 0], end: [1, 1])
@@ -140,7 +140,7 @@ struct JunctionTests {
         var previousOutput: [Junction]? // Removed redundant initialization with nil
 
         for _ in 0..<runs {
-            let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
+            let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: absoluteTolerance)
 
             if let previous = previousOutput {
                 #expect(junctions == previous, "Output order of junctions is not stable between runs")
