@@ -1,5 +1,5 @@
-import Foundation
 import CoreGraphics
+import Foundation
 
 // MARK: - Geometric Algorithms
 
@@ -10,13 +10,13 @@ import CoreGraphics
 /// - Returns: Array of points forming the convex hull in counter-clockwise order
 public func convexHull(of points: [CGPoint]) -> [CGPoint] {
     guard points.count >= 3 else { return points }
-    
+
     // Find the bottom-most point (or left-most if tied)
     let start = points.min { p1, p2 in
         if p1.y != p2.y { return p1.y < p2.y }
         return p1.x < p2.x
     }!
-    
+
     // Sort points by polar angle relative to start point
     let sorted = points.filter { $0 != start }.sorted { p1, p2 in
         let angle1 = atan2(p1.y - start.y, p1.x - start.x)
@@ -29,10 +29,10 @@ public func convexHull(of points: [CGPoint]) -> [CGPoint] {
         }
         return angle1 < angle2
     }
-    
+
     // Build the hull using a stack
     var hull = [start]
-    
+
     for point in sorted {
         // Remove points that make a right turn
         while hull.count > 1 {
@@ -47,17 +47,17 @@ public func convexHull(of points: [CGPoint]) -> [CGPoint] {
         }
         hull.append(point)
     }
-    
+
     return hull
 }
 
 /// Computes the cross product of vectors OA and OB where O is the origin
 /// - Returns: Positive if counter-clockwise turn, negative if clockwise, zero if collinear
 public func crossProduct(_ o: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
-    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+    (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
 }
 
 /// Cross product of two vectors (from origin)
 public func crossProduct(_ v1: CGPoint, _ v2: CGPoint) -> CGFloat {
-    return v1.x * v2.y - v1.y * v2.x
+    v1.x * v2.y - v1.y * v2.x
 }
