@@ -1,5 +1,5 @@
-import Foundation
 import CoreGraphics
+import Foundation
 
 // Stable child IDs derived from parent IDs so repeated runs are deterministic.
 public struct SplitID<ParentID: Hashable>: Hashable {
@@ -20,7 +20,7 @@ extension SplitID: CustomStringConvertible {
 ///   - segments: input segments, each identified by a parent ID
 ///   - epsilon: geometric tolerance for merging near-duplicate split params
 /// - Returns: subsegments, each identified by `(parent, ordinal)`
-public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegment>],epsilon: CGFloat = 1e-9) -> [Identified<SplitID<ParentID>, LineSegment>] {
+public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegment>], epsilon: CGFloat = 1e-9) -> [Identified<SplitID<ParentID>, LineSegment>] {
     // Helper: linear interpolation on a segment
     func point(on s: LineSegment, at t: CGFloat) -> CGPoint {
         CGPoint(
@@ -49,13 +49,14 @@ public func split<ParentID: Hashable>(segments: [Identified<ParentID, LineSegmen
 
     // Pairwise intersections
     for i in 0..<segments.count {
-        for j in (i+1)..<segments.count {
+        for j in (i + 1)..<segments.count {
             let s1 = segments[i].value
             let s2 = segments[j].value
 
             switch segmentIntersection(s1, s2) {
             case .none:
                 break
+
             case let .point(_, t1, t2):
                 // record interior hits; endpoints are fine too (dedup handles them)
                 splitParams[i].append(t1)

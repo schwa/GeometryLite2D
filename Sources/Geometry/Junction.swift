@@ -15,11 +15,11 @@ extension Junction: Equatable {
 
 public extension Junction {
     func ordered() -> Junction {
-        Junction(center: center, vertices: vertices.sorted(by: { lhs, rhs in
+        Junction(center: center, vertices: vertices.sorted { lhs, rhs in
             let lhsAngle = center.angle(relativeTo: lhs)
             let rhsAngle = center.angle(relativeTo: rhs)
             return lhsAngle < rhsAngle
-        }))
+        })
     }
 
     func normalized() -> Junction {
@@ -36,7 +36,6 @@ public extension Junction {
 }
 
 public extension Junction {
-
     /// Finds and returns all junctions (intersection points) among the given line segments within a specified tolerance.
     /// This function does not break line segments up at T-junctions or intersections, but rather identifies junctions based on proximity of endpoints and intersection points.
     ///

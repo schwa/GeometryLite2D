@@ -2,8 +2,6 @@ import CoreGraphics
 import Foundation // Added to resolve JSONEncoder and JSONDecoder usage
 import Geometry
 import Testing
-import Foundation // Added to resolve JSONEncoder and JSONDecoder usage
-
 struct CappedLineSegmentTests {
     @Test func testInitAndProperties() {
         let start = CGPoint.zero
@@ -147,27 +145,26 @@ struct CappedLineSegmentTests {
 
     // Test bevel caps
 
-
     @Test(arguments: [(CappedLineSegment, [CGPoint], (CGFloat, CGFloat, CGFloat), (CGFloat, CGFloat, CGFloat))]([
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .butt, endCap: .butt),
             [CGPoint]([[0, -0.25], [0, 0], [0, 0.25], [1, 0.25], [1, 0], [1, -0.25]]),
             (0, 0, 0),
             (0, 0, 0),
-        ),
+            ),
         // Square Caps
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .butt, endCap: .square),
             [CGPoint]([[0, -0.25], [0, 0], [0, 0.25], [1.25, 0.25], [1.25, 0], [1.25, -0.25]]),
             (0, 0, 0),
             (0.25, 0.25, 0.25),
-        ),
+            ),
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .square, endCap: .butt),
             [CGPoint]([[-0.25, -0.25], [-0.25, 0], [-0.25, 0.25], [1, 0.25], [1, 0], [1, -0.25]]),
             (0.25, 0.25, 0.25),
             (0, 0, 0),
-        ),
+            ),
         // TODO: Miter Caps
         // Bevel Caps
         (
@@ -175,25 +172,25 @@ struct CappedLineSegmentTests {
             [CGPoint]([[0, -0.25], [0, 0], [0, 0.25], [0.75, 0.25], [1, 0], [1, -0.25]]),
             (0, 0, 0),
             (-0.25, 0, 0),
-        ),
+            ),
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .butt, endCap: .bevel(.second, 0.25)),
             [CGPoint]([[0, -0.25], [0, 0], [0, 0.25], [1, 0.25], [1, 0], [0.75, -0.25]]),
             (0, 0, 0),
             (0, 0, -0.25),
-        ),
+            ),
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .bevel(.first, 0.25), endCap: .butt),
             [CGPoint]([[0.25, -0.25], [0, 0], [0, 0.25], [1, 0.25], [1, 0], [1, -0.25]]),
             (-0.25, 0, 0),
             (0, 0, 0),
-        ),
+            ),
         (
             CappedLineSegment(start: [0, 0], end: [1, 0], width: 0.5, startCap: .bevel(.second, 0.25), endCap: .butt),
             [CGPoint]([[0, -0.25], [0, 0], [0.25, 0.25], [1, 0.25], [1, 0], [1, -0.25]]),
             (0, 0, -0.25),
             (0, 0, 0),
-        ),
+            )
     ]))
     func testVertices(cappedLineSegment: CappedLineSegment, vertices: [CGPoint], startOffsets: (CGFloat, CGFloat, CGFloat), endOffsets: (CGFloat, CGFloat, CGFloat)) {
         // Check vertices
@@ -207,5 +204,4 @@ struct CappedLineSegmentTests {
         copy.endOffsets = endOffsets
         #expect(copy == cappedLineSegment)
     }
-
 }

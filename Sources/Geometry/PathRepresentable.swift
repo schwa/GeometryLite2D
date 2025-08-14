@@ -35,7 +35,7 @@ extension Polygon: PathRepresentable {
     public func makePath() -> Path {
         var path = Path()
         guard let first = vertices.first else { return path }
-        
+
         path.move(to: first)
         for vertex in vertices.dropFirst() {
             path.addLine(to: vertex)

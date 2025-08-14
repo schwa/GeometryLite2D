@@ -1,5 +1,5 @@
-import SwiftUI
 import Geometry
+import SwiftUI
 
 // Resolve ambiguity with QuickDraw's Polygon type
 typealias Polygon = Geometry.Polygon
@@ -41,9 +41,9 @@ public extension VisualizationStyle {
 
 extension VisualizationRepresentable where Self: PathRepresentable {
     var boundingRect: CGRect {
-        return Path(representable: self).boundingRect
+        Path(representable: self).boundingRect
     }
-    
+
     func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
         let path = Path(representable: self).applying(transform)
         if let fillShading = style.fill {
@@ -58,7 +58,6 @@ extension VisualizationRepresentable where Self: PathRepresentable {
 
 extension Path: VisualizationRepresentable {
     public func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
-
         let path = self.applying(transform)
 
         // Fill first (so stroke appears on top)
@@ -116,60 +115,59 @@ struct VisualizationView: View {
                 allBounds.append(representable.boundingRect)
             }
         }
-        
+
         guard !allBounds.isEmpty else {
             return (CGRect(x: 0, y: 0, width: 100, height: 100), CGSize(width: 200, height: 200), .identity, .zero)
         }
-        
+
         var unionBounds = allBounds[0]
         for bounds in allBounds.dropFirst() {
             unionBounds = unionBounds.union(bounds)
         }
         unionBounds = unionBounds.union(CGRect(x: 0, y: 0, width: 0.1, height: 0.1))
-        
+
         let margin: CGFloat = 20
         let targetSize: CGFloat = 200
-        
+
         if scaleToFit {
             // Scale content to fit within target size
             let contentWidth = unionBounds.width
             let contentHeight = unionBounds.height
-            
+
             // Calculate scale to fit within target size (minus margins)
             let availableSize = targetSize - (margin * 2)
             let scaleX = contentWidth > 0 ? availableSize / contentWidth : 1
             let scaleY = contentHeight > 0 ? availableSize / contentHeight : 1
             let scale = min(scaleX, scaleY) // Take the smaller scale to fit both dimensions
-            
+
             // Apply scale and center
             let scaledWidth = contentWidth * scale
             let scaledHeight = contentHeight * scale
             let xOffset = (targetSize - scaledWidth) / 2
             let yOffset = (targetSize - scaledHeight) / 2
-            
+
             let transform = CGAffineTransform(translationX: -unionBounds.minX, y: -unionBounds.minY)
                 .scaledBy(x: scale, y: scale)
                 .translatedBy(x: xOffset / scale, y: yOffset / scale)
-            
+
             return (unionBounds, CGSize(width: targetSize, height: targetSize), transform, .zero)
-        } else {
-            let canvasSize = CGSize(width: max(targetSize, unionBounds.width + margin * 2),
-                                  height: max(targetSize, unionBounds.height + margin * 2))
-            let transform = CGAffineTransform(translationX: margin - unionBounds.minX, y: margin - unionBounds.minY)
-            return (unionBounds, canvasSize, transform, .zero)
         }
+        let canvasSize = CGSize(width: max(targetSize, unionBounds.width + margin * 2),
+                                height: max(targetSize, unionBounds.height + margin * 2))
+        let transform = CGAffineTransform(translationX: margin - unionBounds.minX, y: margin - unionBounds.minY)
+        return (unionBounds, canvasSize, transform, .zero)
     }
 
     private func drawAxes(context: GraphicsContext, size: CGSize, info: (bounds: CGRect, canvasSize: CGSize, transform: CGAffineTransform, originOffset: CGPoint)) {
         // Calculate where the actual 0 axes appear in canvas coordinates
-        let originInCanvas = CGPoint(x: 0, y: 0).applying(info.transform)
-        
+        let originInCanvas = CGPoint.zero.applying(info.transform)
+
         // Draw X-axis (horizontal line through y=0)
         var xAxisPath = Path()
         xAxisPath.move(to: CGPoint(x: 0, y: originInCanvas.y))
         xAxisPath.addLine(to: CGPoint(x: size.width, y: originInCanvas.y))
         context.stroke(xAxisPath, with: .color(.gray.opacity(0.3)), lineWidth: 0.5)
-        
+
         // Draw Y-axis (vertical line through x=0)
         var yAxisPath = Path()
         yAxisPath.move(to: CGPoint(x: originInCanvas.x, y: 0))
@@ -178,7 +176,7 @@ struct VisualizationView: View {
     }
 
     private func drawOriginLabel(context: GraphicsContext, info: (bounds: CGRect, canvasSize: CGSize, transform: CGAffineTransform, originOffset: CGPoint)) {
-        let origin = CGPoint(x: 0, y: 0).applying(info.transform)
+        let origin = CGPoint.zero.applying(info.transform)
         if let originLabel = context.resolveSymbol(id: "origin") {
             let labelOffset = CGPoint(x: 15, y: -15)
             context.draw(originLabel, at: CGPoint(x: origin.x + labelOffset.x, y: origin.y + labelOffset.y))
@@ -190,7 +188,7 @@ extension VisualizationView {
     init(paths: [Path], scaleToFit: Bool = false) {
         let colors: [Color] = [.blue, .red, .green, .orange, .purple, .pink]
         var elements: [([any VisualizationRepresentable], VisualizationStyle)] = []
-        
+
         for (index, path) in paths.enumerated() {
             let color = colors[index % colors.count]
             let style = VisualizationStyle(
@@ -199,7 +197,7 @@ extension VisualizationView {
             )
             elements.append(([path], style))
         }
-        
+
         self.init(elements: elements, scaleToFit: scaleToFit)
     }
 }
@@ -214,7 +212,6 @@ func visualize(_ elements: [([any VisualizationRepresentable], VisualizationStyl
     #endif
     return renderer.cgImage!
 }
-
 
 @MainActor
 @discardableResult
@@ -245,17 +242,17 @@ import Playgrounds
 
 #Playground {
     visualize([
-        LineSegment(CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 100)),
+        LineSegment(CGPoint.zero, CGPoint(x: 100, y: 100))
     ])
     visualize(paths: [
         Path(CGRect(x: 0, y: 0, width: 100, height: 100)),
         Path(ellipseIn: CGRect(x: 50, y: 50, width: 100, height: 100)),
-        Path(ellipseIn: CGRect(x: 250, y: 250, width: 100, height: 100)),
+        Path(ellipseIn: CGRect(x: 250, y: 250, width: 100, height: 100))
     ])
 
     visualize(paths: [
         Path(CGRect(x: 0, y: 0, width: 100, height: 100)),
-        Path(ellipseIn: CGRect(x: -250, y: 250, width: 100, height: 100)),
+        Path(ellipseIn: CGRect(x: -250, y: 250, width: 100, height: 100))
     ])
 
     visualize([CGRect(x: 0, y: 0, width: 100, height: 100)])
@@ -269,7 +266,6 @@ extension LineSegment: VisualizationRepresentable {
 extension Polygon: VisualizationRepresentable {
 }
 
-
 extension CGRect {
     init(center: CGPoint, size: CGSize) {
         self.init(origin: CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2), size: size)
@@ -278,12 +274,10 @@ extension CGRect {
 
 extension CGPoint: VisualizationRepresentable {
     var boundingRect: CGRect {
-        return CGRect(center: self, size: CGSize(width: 4, height: 4))
+        CGRect(center: self, size: CGSize(width: 4, height: 4))
     }
 
     func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
-
-
         let point = self.applying(transform)
 
         let path = Path { path in

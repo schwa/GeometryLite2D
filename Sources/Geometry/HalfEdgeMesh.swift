@@ -1,9 +1,7 @@
-import Foundation
 import CoreGraphics
-
+import Foundation
 
 public struct HalfEdgeMesh<ID: Hashable> {
-
     // Stable ids
     public struct VertexID: Hashable { public let raw: Int }
     public struct HalfEdgeID: Hashable { public let raw: Int }
@@ -69,7 +67,6 @@ public struct HalfEdgeMesh<ID: Hashable> {
         // 2) Create 2 half-edges per segment (both directions) and link twins
         var pendingTwins: [PairKey: HalfEdgeID] = [:] // (u,v) -> he(u->v), to find twin(v->u)
         halfEdges.reserveCapacity(segments.count * 2)
-
 
         for s in segments {
             let a = vID(for: s.value.start)
@@ -184,7 +181,7 @@ extension HalfEdgeMesh.FaceID: CustomStringConvertible {
 
 extension HalfEdgeMesh {
     // MARK: - Validation
-    
+
     /// Validates the consistency of the half-edge mesh structure
     /// Returns nil if valid, or an error message describing the first issue found
     public func validate() -> String? {
@@ -193,12 +190,12 @@ extension HalfEdgeMesh {
         for edge in halfEdges {
             verticesInEdges.insert(edge.origin)
         }
-        
+
         for vertex in vertices {
             if !verticesInEdges.contains(vertex.id) {
                 return "Vertex \(vertex.id) at \(vertex.p) is not referenced by any half-edge"
             }
-            
+
             // Also check that if a vertex has an edge pointer, it's valid and originates from this vertex
             if let edgeID = vertex.edge {
                 if edgeID.raw >= halfEdges.count {
@@ -209,7 +206,7 @@ extension HalfEdgeMesh {
                 }
             }
         }
-        
+
         // Check 2: Each half-edge should be in at least one face (unless it's a boundary edge)
         // Boundary edges are allowed when both the edge and its twin have no face assignment
         // This happens for dangling edges or open boundaries
@@ -223,7 +220,7 @@ extension HalfEdgeMesh {
                 // We just need to ensure the twin relationship is valid (checked later)
             }
         }
-        
+
         // Check 3: Twin relationships are symmetric
         for edge in halfEdges {
             if let twinID = edge.twin {
@@ -234,7 +231,7 @@ extension HalfEdgeMesh {
                 if twin.twin != edge.id {
                     return "Edge \(edge.id) has twin \(twinID), but that edge's twin is \(twin.twin?.description ?? "nil")"
                 }
-                
+
                 // Twins should have opposite vertices
                 if let twinDest = dest(of: edge.id), twin.origin != twinDest {
                     return "Edge \(edge.id) and its twin \(twinID) don't have opposite vertices"
@@ -244,7 +241,7 @@ extension HalfEdgeMesh {
                 }
             }
         }
-        
+
         // Check 4: Next/prev relationships are consistent
         for edge in halfEdges {
             if let nextID = edge.next {
@@ -256,7 +253,7 @@ extension HalfEdgeMesh {
                     return "Edge \(edge.id) has next \(nextID), but that edge's prev is \(next.prev?.description ?? "nil")"
                 }
             }
-            
+
             if let prevID = edge.prev {
                 if prevID.raw >= halfEdges.count {
                     return "Edge \(edge.id) has invalid prev reference \(prevID)"
@@ -267,22 +264,22 @@ extension HalfEdgeMesh {
                 }
             }
         }
-        
+
         // Check 5: Face boundaries form closed loops
         for face in faces {
             guard let startEdge = face.edge else {
                 return "Face \(face.id) has no boundary edge"
             }
-            
+
             if startEdge.raw >= halfEdges.count {
                 return "Face \(face.id) has invalid edge reference \(startEdge)"
             }
-            
+
             var visited = Set<HalfEdgeID>()
             var currentEdge = startEdge
             var loopCount = 0
             let maxLoopCount = halfEdges.count + 1 // Prevent infinite loops
-            
+
             while loopCount < maxLoopCount {
                 if visited.contains(currentEdge) {
                     if currentEdge != startEdge {
@@ -290,32 +287,32 @@ extension HalfEdgeMesh {
                     }
                     break // Properly closed loop
                 }
-                
+
                 visited.insert(currentEdge)
                 let edge = halfEdges[currentEdge.raw]
-                
+
                 // Check this edge belongs to this face
                 if edge.face != face.id {
                     return "Face \(face.id) references edge \(currentEdge) which belongs to face \(edge.face?.description ?? "nil")"
                 }
-                
+
                 guard let nextEdge = edge.next else {
                     return "Face \(face.id) has edge \(currentEdge) with no next pointer (open boundary)"
                 }
-                
+
                 currentEdge = nextEdge
                 loopCount += 1
             }
-            
+
             if loopCount >= maxLoopCount {
                 return "Face \(face.id) boundary appears to be infinite or malformed"
             }
-            
+
             if visited.count < 3 {
                 return "Face \(face.id) has degenerate boundary with only \(visited.count) edges"
             }
         }
-        
+
         // Check 6: No edge should reference non-existent faces
         for edge in halfEdges {
             if let faceID = edge.face {
@@ -324,11 +321,11 @@ extension HalfEdgeMesh {
                 }
             }
         }
-        
+
         // All checks passed
         return nil
     }
-    
+
     // MARK: - Face -> polygon(s)
 
     /// Return the ordered boundary of `face` as points (no holes).

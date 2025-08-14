@@ -94,10 +94,13 @@ public extension CappedLineSegment {
             switch startCap {
             case .butt:
                 return (0, 0, 0)
+
             case .square:
                 return (width / 2, width / 2, width / 2)
+
             case .mitered(let d0, let d1, let d2):
                 return (d0, d1, d2)
+
             case .bevel(let index, let distance):
                 return (index == .first ? -distance : 0, 0, index == .second ? -distance : 0)
             }
@@ -106,15 +109,16 @@ public extension CappedLineSegment {
             switch newValue {
             case (0, 0, 0):
                 startCap = .butt
+
             case (width / 2, width / 2, width / 2):
                 startCap = .square
+
             default:
                 if newValue.1 == 0 && newValue.0 == 0 {
                     startCap = .bevel(.second, -newValue.2)
-                } else if newValue.1 == 0 && newValue.2 == 0{
+                } else if newValue.1 == 0 && newValue.2 == 0 {
                     startCap = .bevel(.first, -newValue.0)
-                }
-                else {
+                } else {
                     startCap = .mitered(newValue.0, newValue.1, newValue.2)
                 }
             }
@@ -126,10 +130,13 @@ public extension CappedLineSegment {
             switch endCap {
             case .butt:
                 return (0, 0, 0)
+
             case .square:
                 return (width / 2, width / 2, width / 2)
+
             case .mitered(let d0, let d1, let d2):
                 return (d0, d1, d2)
+
             case .bevel(let index, let distance):
                 return (index == .first ? -distance : 0, 0, index == .second ? -distance : 0)
             }
@@ -138,15 +145,16 @@ public extension CappedLineSegment {
             switch newValue {
             case (0, 0, 0):
                 endCap = .butt
+
             case (width / 2, width / 2, width / 2):
                 endCap = .square
+
             default:
                 if newValue.1 == 0 && newValue.0 == 0 {
                     endCap = .bevel(.second, -newValue.2)
-                } else if newValue.1 == 0 && newValue.2 == 0{
+                } else if newValue.1 == 0 && newValue.2 == 0 {
                     endCap = .bevel(.first, -newValue.0)
-                }
-                else {
+                } else {
                     endCap = .mitered(newValue.0, newValue.1, newValue.2)
                 }
             }
@@ -203,8 +211,10 @@ public extension CappedLineSegment {
         switch vertex {
         case start:
             return CappedLineSegment(start: start, end: end, width: width, startCap: cap, endCap: endCap)
+
         case end:
             return CappedLineSegment(start: start, end: end, width: width, startCap: startCap, endCap: cap)
+
         default:
             fatalError("TODO")
         }
@@ -232,10 +242,13 @@ extension CappedLineSegment.Cap: CustomDebugStringConvertible {
         switch self {
         case .butt:
             return "butt"
+
         case .square:
             return "square"
+
         case .mitered(let offset0, let offset1, let offset2):
             return "mitered(\(offset0), \(offset1), \(offset2))"
+
         case .bevel(let index, let distance):
             return "bevel(index: \(index), distance: \(distance))"
         }

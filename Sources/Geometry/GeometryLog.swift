@@ -3,7 +3,6 @@ import os
 import SwiftUI
 
 public final class GeometryLog: Sendable {
-
     public static let shared = GeometryLog()
 
     public struct Event: Sendable {
@@ -46,7 +45,6 @@ public final class GeometryLog: Sendable {
             callbacks.forEach { $0() }
         }
     }
-
 }
 
 public enum LoggableGeometry: Sendable {

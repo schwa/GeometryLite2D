@@ -88,4 +88,3 @@ public extension Path {
         addLine(to: end)
     }
 }
-

@@ -8,8 +8,7 @@ public struct UndirectedLineSegment: Hashable, Sendable {
         if v0.compare(to: v1, using: .yThenX) == .orderedAscending {
             self.v0 = v0
             self.v1 = v1
-        }
-        else {
+        } else {
             self.v0 = v1
             self.v1 = v0
         }
@@ -21,4 +20,3 @@ public extension UndirectedLineSegment {
         self.init(v0: lineSegment.start, v1: lineSegment.end)
     }
 }
-

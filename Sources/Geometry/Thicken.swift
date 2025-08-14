@@ -1,6 +1,6 @@
+import Collections
 import CoreGraphics
 import SwiftUI
-import Collections
 
 public func thicken(segments: [LineSegment], lineWidth: CGFloat, tolerance _: CGFloat) -> [CappedLineSegment] {
     print("#######################################")
@@ -12,13 +12,12 @@ public func thicken(segments: [LineSegment], lineWidth: CGFloat, tolerance _: CG
     print("#unique segments", segments.count)
 
     let junctions = Junction.findJunctions(lineSegments: segments, epsilon: 0)
-    let cappedSegments = thicken(junctions: junctions, lineWidth: lineWidth, miterLimit: nil)
-    return cappedSegments
+    return thicken(junctions: junctions, lineWidth: lineWidth, miterLimit: nil)
 }
 
 // MARK: -
 
-public func thicken(junctions: [Junction], lineWidth: CGFloat, miterLimit: CGFloat?) -> [CappedLineSegment] {
+public func thicken(junctions: [Junction], lineWidth: CGFloat, miterLimit _: CGFloat?) -> [CappedLineSegment] {
     print("#junctions", junctions.count)
     print("#junction vertices", junctions.map(\.vertices.count).reduce(0, +))
     let junctions = junctions.map { $0.normalized() }
@@ -36,8 +35,7 @@ public func thicken(junctions: [Junction], lineWidth: CGFloat, miterLimit: CGFlo
             var cappedSegment = cappedSegment
             cappedSegment = cappedSegment.takingCaps(from: other)
             result[UndirectedLineSegment(cappedSegment.segment)] = cappedSegment
-        }
-        else {
+        } else {
             result[UndirectedLineSegment(cappedSegment.segment)] = cappedSegment
         }
     }
@@ -70,7 +68,7 @@ public func thicken(junctions: [Junction], lineWidth: CGFloat, miterLimit: CGFlo
     return []
 }
 
-public func thicken(junction: Junction, lineWidth: CGFloat, miterLimit: CGFloat?) -> [CappedLineSegment] {
+public func thicken(junction: Junction, lineWidth: CGFloat, miterLimit _: CGFloat?) -> [CappedLineSegment] {
     guard junction.vertices.count > 1 else {
         return [CappedLineSegment(start: junction.center, end: junction.vertices[0], width: lineWidth)]
     }
@@ -125,12 +123,10 @@ extension CappedLineSegment {
         if point == start {
             return startOffsets
         }
-        else if point == end {
+        if point == end {
             return endOffsets
         }
-        else {
-            fatalError()
-        }
+        fatalError()
     }
 
     func takingCaps(from other: CappedLineSegment) -> CappedLineSegment {
@@ -144,5 +140,3 @@ extension CappedLineSegment {
         return copy
     }
 }
-
-

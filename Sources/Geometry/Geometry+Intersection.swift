@@ -146,7 +146,7 @@ public extension Ray {
             LineSegment(start: CGPoint(x: rect.minX, y: rect.maxY), end: CGPoint(x: rect.minX, y: rect.minY))  // left
         ]
 
-        var closest: (distance: CGFloat, point: CGPoint)? = nil
+        var closest: (distance: CGFloat, point: CGPoint)?
 
         for edge in edges {
             if let intersection = self.intersection(with: edge) {

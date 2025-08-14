@@ -5,7 +5,7 @@ import Testing
 struct JunctionTests {
     @Test
     func testInitSortsAndDeduplicatesVertices() {
-        let center = CGPoint(x: 0, y: 0)
+        let center = CGPoint.zero
         let vertexA = CGPoint(x: 1, y: 0)
         let vertexB = CGPoint(x: 0, y: 1)
         let vertexC = CGPoint(x: -1, y: 0)
@@ -19,7 +19,7 @@ struct JunctionTests {
 
     @Test
     func testSegments() {
-        let center = CGPoint(x: 0, y: 0)
+        let center = CGPoint.zero
         let vertexA = CGPoint(x: 1, y: 0)
         let vertexB = CGPoint(x: 0, y: 1)
         let junction = Junction(center: center, vertices: [vertexA, vertexB])
@@ -31,7 +31,7 @@ struct JunctionTests {
 
     @Test
     func testEquatable() {
-        let center = CGPoint(x: 0, y: 0)
+        let center = CGPoint.zero
         let vertexA = CGPoint(x: 1, y: 0)
         let vertexB = CGPoint(x: 0, y: 1)
         let junction1 = Junction(center: center, vertices: [vertexA, vertexB])
@@ -44,7 +44,7 @@ struct JunctionTests {
         let epsilon: CGFloat = 0.01
 
         // Define a single line segment
-        let segment = LineSegment(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 1, y: 1))
+        let segment = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
 
         // Call findJunctions
         let junctions = Junction.findJunctions(lineSegments: [segment], epsilon: epsilon)
@@ -58,7 +58,7 @@ struct JunctionTests {
         let epsilon: CGFloat = 0.01
 
         // Define two line segments sharing a common vertex
-        let segment1 = LineSegment(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 1, y: 1))
+        let segment1 = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
         let segment2 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 2, y: 0))
 
         // Call findJunctions
@@ -70,7 +70,7 @@ struct JunctionTests {
         // Validate the single junction
         let junction = junctions[0]
         #expect(junction.center == CGPoint(x: 1, y: 1))
-        #expect(junction.vertices.contains(CGPoint(x: 0, y: 0)))
+        #expect(junction.vertices.contains(CGPoint.zero))
         #expect(junction.vertices.contains(CGPoint(x: 2, y: 0)))
     }
 
@@ -79,7 +79,7 @@ struct JunctionTests {
         let epsilon: CGFloat = 0.01
 
         // Define three line segments forming a T-junction
-        let segment1 = LineSegment(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 1, y: 1))
+        let segment1 = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
         let segment2 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 2, y: 1))
         let segment3 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 1, y: 2))
 
@@ -92,7 +92,7 @@ struct JunctionTests {
         // Validate the single junction
         let junction = junctions[0]
         #expect(junction.center == CGPoint(x: 1, y: 1))
-        #expect(junction.vertices.contains(CGPoint(x: 0, y: 0)))
+        #expect(junction.vertices.contains(CGPoint.zero))
         #expect(junction.vertices.contains(CGPoint(x: 2, y: 1)))
         #expect(junction.vertices.contains(CGPoint(x: 1, y: 2)))
     }

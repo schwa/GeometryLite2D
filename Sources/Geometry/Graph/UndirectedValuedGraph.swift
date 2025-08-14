@@ -1,8 +1,6 @@
-
 import Collections
 
 public struct UndirectedValuedGraph<Vertex: Hashable, VertexValue, EdgeValue> {
-
     public typealias VertexValue = VertexValue
     public typealias EdgeValue = EdgeValue
 
