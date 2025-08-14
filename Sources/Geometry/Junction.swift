@@ -1,16 +1,27 @@
 import CoreGraphics
 
 public struct Junction {
-    public var center: CGPoint
-    public var vertices: [CGPoint]
+    public let center: CGPoint
+    public let vertices: [CGPoint]
 
     public init(center: CGPoint, vertices: [CGPoint]) {
         self.center = center
-        self.vertices = vertices
+        // Deduplicate vertices
+        let uniqueVertices = Array(Set(vertices))
+        // Sort vertices by angle from center
+        self.vertices = uniqueVertices.sorted { lhs, rhs in
+            let lhsAngle = atan2(lhs.y - center.y, lhs.x - center.x)
+            let rhsAngle = atan2(rhs.y - center.y, rhs.x - center.x)
+            return lhsAngle < rhsAngle
+        }
     }
 }
 
 extension Junction: Equatable {
+    public static func == (lhs: Junction, rhs: Junction) -> Bool {
+        // Since vertices are already sorted in init, we can directly compare
+        return lhs.center == rhs.center && lhs.vertices == rhs.vertices
+    }
 }
 
 public extension Junction {
@@ -62,9 +73,15 @@ public extension Junction {
                 clusters.append([entry])
             }
         }
-        // Build junctions
+        // Build junctions - only where multiple segments meet
         var result: [Junction] = []
         for cluster in clusters {
+            // Only create a junction if multiple segments meet at this point
+            let uniqueSegments = Set(cluster.map(\.segment))
+            if uniqueSegments.count < 2 {
+                continue // Skip if only one segment has endpoints here
+            }
+            
             // Average cluster center
             let center = cluster.map(\.point).reduce(.zero, +) / CGFloat(cluster.count)
             // Collect opposite endpoints of each line segment
