@@ -1,6 +1,35 @@
 import CoreGraphics
 
+// MARK: - LineSegment
+
 public extension LineSegment {
+    func contains(_ point: CGPoint, epsilon: CGFloat = 1e-5) -> Bool {
+        let vectorToPoint = point - start
+        let direction = end - start
+        let length = direction.length
+        
+        // Handle degenerate case
+        guard length > epsilon else {
+            return (point - start).length <= epsilon
+        }
+        
+        let axis = direction.normalized
+        let projectionLength = vectorToPoint.dot(axis)
+        
+        // Projected point must lie between 0 and segment length
+        guard projectionLength >= -epsilon, projectionLength <= length + epsilon else {
+            return false
+        }
+        
+        // Compute the closest point on the segment
+        let projectedPoint = start + axis * projectionLength
+        return (projectedPoint - point).length <= epsilon
+    }
+    
+    func contains(_ point: CGPoint, interior: Bool, epsilon: CGFloat = 1e-5) -> Bool {
+        contains(point, epsilon: epsilon) && (!interior || (point != start && point != end))
+    }
+    
     func contains(_ point: CGPoint, within radius: CGFloat) -> Bool {
         let lineVec = end - start
         let pointVec = point - start
@@ -48,6 +77,33 @@ public extension LineSegment {
             t2 >= -tolerance && t2 <= 1 + tolerance
     }
 }
+
+// MARK: - Ray
+
+public extension Ray {
+    func contains(_ point: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
+        let toPoint = CGVector(dx: point.x - origin.x, dy: point.y - origin.y)
+        let cross = direction.dx * toPoint.dy - direction.dy * toPoint.dx
+        if abs(cross) > tolerance {
+            return false
+        }
+        let dot = direction.dx * toPoint.dx + direction.dy * toPoint.dy
+        return dot >= -tolerance  // Allow for minor floating-point underflow
+    }
+}
+
+// MARK: - Line
+
+public extension Line {
+    func contains(_ test: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
+        let dx = test.x - point.x
+        let dy = test.y - point.y
+        let cross = dx * direction.dy - dy * direction.dx
+        return abs(cross) <= tolerance
+    }
+}
+
+// MARK: - Polygon
 
 public extension Polygon {
     func contains(_ point: CGPoint) -> Bool {

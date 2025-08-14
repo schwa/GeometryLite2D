@@ -19,6 +19,7 @@ extension Polyline: Sendable {
 }
 
 public extension Polyline {
+    // TODO: Make property Call "segments" instead.
     func lineSegments() -> [LineSegment] {
         guard vertices.count > 1 else { return [] }
         var segments: [LineSegment] = []
@@ -31,7 +32,6 @@ public extension Polyline {
 }
 
 public extension Polyline {
-    // TODO: this overlaps with Polygon.
     static func polylines(from lineSegments: [LineSegment], epsilon: CGFloat = 0.0) -> [Polyline] {
         // Helper to compare points with optional epsilon
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {

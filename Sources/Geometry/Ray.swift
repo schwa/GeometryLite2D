@@ -29,15 +29,6 @@ public extension Ray {
     }
 
     // Check if a point lies on the ray (within tolerance)
-    func contains(_ point: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
-        let toPoint = CGVector(dx: point.x - origin.x, dy: point.y - origin.y)
-        let cross = direction.dx * toPoint.dy - direction.dy * toPoint.dx
-        if abs(cross) > tolerance {
-            return false
-        }
-        let dot = direction.dx * toPoint.dx + direction.dy * toPoint.dy
-        return dot >= -tolerance  // Allow for minor floating-point underflow
-    }
 
     // Project a point onto the ray (clamped to t >= 0)
     func projectedPoint(from point: CGPoint) -> CGPoint {

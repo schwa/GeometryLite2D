@@ -32,12 +32,6 @@ public extension Line {
 }
 
 public extension Line {
-    func contains(_ test: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
-        let dx = test.x - point.x
-        let dy = test.y - point.y
-        let cross = dx * direction.dy - dy * direction.dx
-        return abs(cross) <= tolerance
-    }
 
     func perpendicularThrough(_ p: CGPoint) -> Line {
         let perpDirection = CGVector(dx: -direction.dy, dy: direction.dx)

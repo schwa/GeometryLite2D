@@ -65,35 +65,6 @@ public extension LineSegment {
 // MARK: -
 
 public extension LineSegment {
-    func contains(_ point: CGPoint, interior: Bool, epsilon: CGFloat = 1e-5) -> Bool {
-        contains(point, epsilon: epsilon) && (!interior || (point != start && point != end))
-    }
-
-    func contains(_ point: CGPoint, epsilon: CGFloat = 1e-5) -> Bool {
-        let vectorToPoint = point - start
-        let direction = end - start
-        let length = direction.length
-
-        // Handle degenerate case
-        guard length > epsilon else {
-            return (point - start).length <= epsilon
-        }
-
-        let axis = direction.normalized
-        let projectionLength = vectorToPoint.dot(axis)
-
-        // Projected point must lie between 0 and segment length
-        guard projectionLength >= -epsilon, projectionLength <= length + epsilon else {
-            return false
-        }
-
-        // Compute the closest point on the segment
-        let projectedPoint = start + axis * projectionLength
-        return (projectedPoint - point).length <= epsilon
-    }
-}
-
-public extension LineSegment {
     var vector: CGVector {
         CGVector(end - start)
     }
