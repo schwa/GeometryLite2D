@@ -63,7 +63,7 @@ public extension Polygon {
                 }
                 let b1 = vertices[j]
                 let b2 = vertices[(j + 1) % vertices.count]
-                if LineSegment(a1, a2).intersects(LineSegment(b1, b2), epsilon: epsilon) {
+                if LineSegment(a1, a2).intersects(LineSegment(b1, b2), absoluteTolerance: epsilon) {
                     return false
                 }
             }

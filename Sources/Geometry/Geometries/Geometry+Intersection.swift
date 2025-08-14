@@ -6,12 +6,12 @@ import Numerics
 // MARK: Line
 
 public extension Line {
-    func intersection(with other: Line, epsilon: CGFloat = 1e-6) -> CGPoint? {
+    func intersection(with other: Line, absoluteTolerance: CGFloat = 1e-6) -> CGPoint? {
         let dx = other.point.x - point.x
         let dy = other.point.y - point.y
 
         let det = direction.dx * other.direction.dy - direction.dy * other.direction.dx
-        if det.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+        if det.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return nil // lines are parallel
         }
 
@@ -23,7 +23,7 @@ public extension Line {
 // MARK: LineSegment
 
 public extension LineSegment {
-    func intersects(_ lineSegment: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
+    func intersects(_ lineSegment: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         let p = start
         let q = lineSegment.start
         let r = end - start
@@ -33,9 +33,9 @@ public extension LineSegment {
         let qpxr = (q - p).cross(r)
 
         // Check if lines are parallel
-        if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+        if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             // Check if they are collinear
-            if qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+            if qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
                 // Check for overlap
                 let t0 = (q - p).dot(r) / r.dot(r)
                 let t1 = t0 + s.dot(r) / r.dot(r)
@@ -47,15 +47,15 @@ public extension LineSegment {
         let t = (q - p).cross(s) / rxs
         let u = (q - p).cross(r) / rxs
 
-        return t >= -epsilon && t <= 1 + epsilon && u >= -epsilon && u <= 1 + epsilon
+        return t >= -absoluteTolerance && t <= 1 + absoluteTolerance && u >= -absoluteTolerance && u <= 1 + absoluteTolerance
     }
 
     /// Perform intersection as if self and target are convert to infinite lines
-    func infiniteIntesection(_ target: LineSegment, epsilon: CGFloat = 1e-5) -> CGPoint? {
-        Line(self).intersection(with: Line(target), epsilon: epsilon)
+    func infiniteIntesection(_ target: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> CGPoint? {
+        Line(self).intersection(with: Line(target), absoluteTolerance: absoluteTolerance)
     }
 
-    func intersection(_ ray: Ray, epsilon: CGFloat = 1e-5) -> CGPoint? {
+    func intersection(_ ray: Ray, absoluteTolerance: CGFloat = 1e-5) -> CGPoint? {
         let p = ray.origin
         let r = ray.direction
 
@@ -63,7 +63,7 @@ public extension LineSegment {
         let s = end - start
 
         let rCrossS = r.dx * s.y - r.dy * s.x
-        if rCrossS.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+        if rCrossS.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             // Lines are parallel or colinear
             return nil
         }
@@ -73,7 +73,7 @@ public extension LineSegment {
         let u = (qp.dx * r.dy - qp.dy * r.dx) / rCrossS
 
         // Ray: t >= 0, Segment: u in [0,1]
-        if t >= -epsilon, u >= -epsilon, u <= 1 + epsilon {
+        if t >= -absoluteTolerance, u >= -absoluteTolerance, u <= 1 + absoluteTolerance {
             return CGPoint(x: p.x + t * r.dx, y: p.y + t * r.dy)
         }
         return nil
@@ -124,24 +124,24 @@ public extension LineSegment {
 // MARK: -
 
 public extension Ray {
-    func intersection(with other: Ray, epsilon: CGFloat = 1e-6) -> CGPoint? {
+    func intersection(with other: Ray, absoluteTolerance: CGFloat = 1e-6) -> CGPoint? {
         let dx = other.origin.x - origin.x
         let dy = other.origin.y - origin.y
 
         let det = direction.dx * other.direction.dy - direction.dy * other.direction.dx
-        if det.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
+        if det.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return nil // Parallel rays
         }
 
         // Solve for t in self.point(at: t)
         let t = (dx * other.direction.dy - dy * other.direction.dx) / det
-        if t < -epsilon {
+        if t < -absoluteTolerance {
             return nil // Intersection is behind self
         }
 
         // Solve for u in other.point(at: u)
         let u = (dx * direction.dy - dy * direction.dx) / det
-        if u < -epsilon {
+        if u < -absoluteTolerance {
             return nil // Intersection is behind other
         }
 

@@ -38,8 +38,8 @@ public struct GeometryUtils {
     }
 
     /// Check if segments are connected (share an endpoint)
-    @available(*, deprecated, message: "Use LineSegment.sharesVertex(with:epsilon:) instead")
+    @available(*, deprecated, message: "Use LineSegment.sharesVertex(with:absoluteTolerance:) instead")
     public static func segmentsConnected(_ s1: LineSegment, _ s2: LineSegment, tolerance: CGFloat = 0.001) -> Bool {
-        s1.sharesVertex(with: s2, epsilon: tolerance)
+        s1.sharesVertex(with: s2, absoluteTolerance: tolerance)
     }
 }

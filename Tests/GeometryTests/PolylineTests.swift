@@ -18,8 +18,8 @@ import Testing
 
 @Test func testPolylineIsClosedWithEpsilon() {
     let closed = Polyline(vertices: [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 0.001, y: 0.001)])
-    #expect(closed.isClosed(epsilon: 0.01))
-    #expect(!closed.isClosed(epsilon: 0.0001))
+    #expect(closed.isClosed(absoluteTolerance: 0.01))
+    #expect(!closed.isClosed(absoluteTolerance: 0.0001))
 }
 
 @Test func testPolylineLength() {

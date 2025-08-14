@@ -58,10 +58,10 @@ public extension Junction {
     ///
     /// - Parameters:
     ///   - lineSegments: An array of `LineSegment` objects to analyze for junctions.
-    ///   - epsilon: The maximum distance between endpoints or intersection points to consider them as a single junction.
+    ///   - absoluteTolerance: The maximum distance between endpoints or intersection points to consider them as a single junction.
     /// - Returns: An array of `Junction` objects representing the detected junctions among the provided line segments.
-    static func findJunctions(lineSegments: [LineSegment], epsilon: CGFloat) -> [Junction] {
-        let lineSegments = lineSegments.filter { !$0.start.isApproximatelyEqual(to: $0.end, absoluteTolerance: epsilon) }
+    static func findJunctions(lineSegments: [LineSegment], absoluteTolerance: CGFloat) -> [Junction] {
+        let lineSegments = lineSegments.filter { !$0.start.isApproximatelyEqual(to: $0.end, absoluteTolerance: absoluteTolerance) }
         // Flatten endpoints with reference to their segments
         var endpoints: [(point: CGPoint, segment: LineSegment, isStart: Bool)] = []
         for segment in lineSegments {
@@ -72,7 +72,7 @@ public extension Junction {
         var clusters: [[(point: CGPoint, segment: LineSegment, isStart: Bool)]] = []
         for entry in endpoints {
             if let i = clusters.firstIndex(where: { cluster in
-                cluster.contains(where: { $0.point.distance(to: entry.point) <= epsilon })
+                cluster.contains(where: { $0.point.distance(to: entry.point) <= absoluteTolerance })
             }) {
                 clusters[i].append(entry)
             } else {
@@ -96,7 +96,7 @@ public extension Junction {
                 let other = entry.isStart ? entry.segment.end : entry.segment.start
                 vertices.append(other)
             }
-            vertices = vertices.filter { !$0.isApproximatelyEqual(to: center, absoluteTolerance: epsilon) }
+            vertices = vertices.filter { !$0.isApproximatelyEqual(to: center, absoluteTolerance: absoluteTolerance) }
             result.append(Junction(center: center, vertices: vertices))
         }
         return result

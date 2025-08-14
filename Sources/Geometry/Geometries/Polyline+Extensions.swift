@@ -24,6 +24,7 @@ public extension Polyline {
 public extension Polyline {
     static func polylines(from lineSegments: [LineSegment], epsilon: CGFloat = 0.0) -> [Polyline] {
         // Helper to compare points with optional epsilon
+        // TODO: Just use isApproximatelyEqual
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {
             if epsilon == 0 {
                 return a == b
@@ -79,16 +80,16 @@ public extension Polyline {
 // MARK: - Validation Methods
 
 public extension Polyline {
-    func isClosed(epsilon: CGFloat = 0.0) -> Bool {
+    func isClosed(absoluteTolerance: CGFloat = 0.0) -> Bool {
         guard vertices.count > 1 else { return false }
-        return vertices.first!.isApproximatelyEqual(to: vertices.last!, absoluteTolerance: epsilon)
+        return vertices.first!.isApproximatelyEqual(to: vertices.last!, absoluteTolerance: absoluteTolerance)
     }
     
-    func containsLoops(epsilon: CGFloat = 0.0) -> Bool {
+    func containsLoops(absoluteTolerance: CGFloat = 0.0) -> Bool {
         guard vertices.count > 1 else { return false }
         let last = vertices.last!
         for i in 0..<(vertices.count - 1) {
-            if last.isApproximatelyEqual(to: vertices[i], absoluteTolerance: epsilon) {
+            if last.isApproximatelyEqual(to: vertices[i], absoluteTolerance: absoluteTolerance) {
                 return true
             }
         }

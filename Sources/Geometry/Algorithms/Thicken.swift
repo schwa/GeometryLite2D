@@ -11,7 +11,7 @@ public func thicken(segments: [LineSegment], lineWidth: CGFloat, tolerance _: CG
     segments = segments.map { $0.sorted() }.uniqued()
     print("#unique segments", segments.count)
 
-    let junctions = Junction.findJunctions(lineSegments: segments, epsilon: 0)
+    let junctions = Junction.findJunctions(lineSegments: segments, absoluteTolerance: 0)
     return thicken(junctions: junctions, lineWidth: lineWidth, miterLimit: nil)
 }
 

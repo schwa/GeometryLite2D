@@ -47,7 +47,7 @@ struct JunctionTests {
         let segment = LineSegment(start: CGPoint.zero, end: CGPoint(x: 1, y: 1))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment], epsilon: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment], absoluteTolerance: epsilon)
 
         // Validate results
         #expect(junctions.isEmpty)
@@ -62,7 +62,7 @@ struct JunctionTests {
         let segment2 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 2, y: 0))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2], epsilon: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2], absoluteTolerance: epsilon)
 
         // Validate results
         #expect(junctions.count == 1)
@@ -84,7 +84,7 @@ struct JunctionTests {
         let segment3 = LineSegment(start: CGPoint(x: 1, y: 1), end: CGPoint(x: 1, y: 2))
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], epsilon: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
 
         // Validate results
         #expect(junctions.count == 1)
@@ -107,7 +107,7 @@ struct JunctionTests {
         let segment3 = LineSegment(start: [2, 0], end: [0, 0])
 
         // Call findJunctions
-        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], epsilon: epsilon)
+        let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
 
         // Validate results
         #expect(junctions.count == 3)
@@ -140,7 +140,7 @@ struct JunctionTests {
         var previousOutput: [Junction]? // Removed redundant initialization with nil
 
         for _ in 0..<runs {
-            let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], epsilon: epsilon)
+            let junctions = Junction.findJunctions(lineSegments: [segment1, segment2, segment3], absoluteTolerance: epsilon)
 
             if let previous = previousOutput {
                 #expect(junctions == previous, "Output order of junctions is not stable between runs")
