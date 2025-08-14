@@ -1,22 +1,82 @@
+#if canImport(CoreGraphics)
 import CoreGraphics
+#else
 import Foundation
+#endif
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
+// MARK: - Convenience Initializers
 
 public extension LineSegment {
+    init(_ start: CGPoint, _ end: CGPoint) {
+        self.start = start
+        self.end = end
+    }
+}
+
+// MARK: - Computed Properties
+
+public extension LineSegment {
+    var points: [CGPoint] {
+        [start, end]
+    }
+    
+    var mid: CGPoint {
+        (start + end) / 2
+    }
+    
+    var length: CGFloat {
+        (end - start).length
+    }
+    
+    var angle: Angle {
+        Angle(radians: atan2(end.y - start.y, end.x - start.x))
+    }
+    
+    func reversed() -> LineSegment {
+        LineSegment(end, start)
+    }
+    
+    func sorted() -> LineSegment {
+        if start.compare(to: end, using: .yThenX) == .orderedAscending {
+            return self
+        } else {
+            return reversed()
+        }
+    }
+    
+    func split(at point: CGPoint) -> [LineSegment] {
+        if !contains(point, epsilon: 1e-5) {
+            return [self]
+        }
+        if point == start || point == end {
+            return [self]
+        }
+        return [
+            LineSegment(start, point),
+            LineSegment(point, end)
+        ]
+    }
+    
+    var direction: CGVector {
+        CGVector((end - start).normalized)
+    }
+    
+    var normal: CGVector {
+        direction.perpendicular.normalized
+    }
+    
+    var vector: CGVector {
+        CGVector(end - start)
+    }
+    
     func parallel(by offset: CGFloat) -> LineSegment {
         let n = self.normal * offset
         return .init(start: start + n, end: end + n)
     }
-
-    func split(at point: CGPoint) -> [LineSegment] {
-        guard point != start && point != end else {
-            return [self] // No split needed
-        }
-        return [
-            LineSegment(start: start, end: point),
-            LineSegment(start: point, end: end)
-        ]
-    }
-
+    
     func removing(lineSegment: LineSegment) -> [LineSegment] {
         guard start != end else {
             fatalError("Degenerate line segment")
@@ -24,46 +84,46 @@ public extension LineSegment {
         if self == lineSegment {
             return []
         }
-
+        
         let axis = (end - start).normalized
         let length = (end - start).length
-
+        
         // Function to project a point onto this segment's axis
         func project(_ point: CGPoint) -> CGFloat {
             (point - start).dot(axis)
         }
-
+        
         let selfStartScalar: CGFloat = 0
         let selfEndScalar: CGFloat = length
-
+        
         let otherStart = project(lineSegment.start)
         let otherEnd = project(lineSegment.end)
-
+        
         let removalStart = max(min(otherStart, otherEnd), selfStartScalar)
         let removalEnd = min(max(otherStart, otherEnd), selfEndScalar)
-
+        
         // No overlap
         if removalStart >= removalEnd {
             return [self]
         }
-
+        
         var result: [LineSegment] = []
-
+        
         if removalStart > selfStartScalar {
             let segmentStart = start
             let segmentEnd = start + axis * removalStart
             result.append(LineSegment(start: segmentStart, end: segmentEnd))
         }
-
+        
         if removalEnd < selfEndScalar {
             let segmentStart = start + axis * removalEnd
             let segmentEnd = end
             result.append(LineSegment(start: segmentStart, end: segmentEnd))
         }
-
+        
         return result
     }
-
+    
     func removing(lineSegments: [LineSegment]) -> [LineSegment] {
         var remainingSegments: [LineSegment] = [self]
         for segmentToRemove in lineSegments {
@@ -71,34 +131,20 @@ public extension LineSegment {
         }
         return remainingSegments
     }
-
+    
     func sharesVertex(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
         self.start.isApproximatelyEqual(to: other.start, epsilon: epsilon) ||
             self.start.isApproximatelyEqual(to: other.end, epsilon: epsilon) ||
             self.end.isApproximatelyEqual(to: other.start, epsilon: epsilon) ||
             self.end.isApproximatelyEqual(to: other.end, epsilon: epsilon)
     }
-
+    
     func isTJunction(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
         // Check if one of the endpoints of `other` lies on this segment (interior only)
         let otherStartOnSelf = self.contains(other.start, interior: true, epsilon: epsilon)
         let otherEndOnSelf = self.contains(other.end, interior: true, epsilon: epsilon)
         // A T-junction occurs if exactly one endpoint of `other` lies on this segment (interior only)
         return (otherStartOnSelf != otherEndOnSelf) && (otherStartOnSelf || otherEndOnSelf)
-    }
-}
-
-public extension LineSegment {
-    func reversed() -> LineSegment {
-        LineSegment(start: end, end: start)
-    }
-
-    func sorted() -> LineSegment {
-        if start < end {
-            self
-        } else {
-            LineSegment(start: end, end: start)
-        }
     }
 }
 
