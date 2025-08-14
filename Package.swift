@@ -1,5 +1,4 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
@@ -10,24 +9,25 @@ let package = Package(
         .iOS(.v18),
     ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "Geometry",
-            targets: ["Geometry"]
-        ),
+        .library(name: "Geometry", targets: ["Geometry"]),
+        .library(name: "Visualization", targets: ["Visualization"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.0"),
         .package(url: "https://github.com/apple/swift-numerics.git", from: "1.0.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Geometry",
             dependencies: [
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Numerics", package: "swift-numerics"),
+            ]
+        ),
+        .target(
+            name: "Visualization",
+            dependencies: [
+                "Geometry"
             ]
         ),
         .testTarget(
