@@ -23,7 +23,7 @@ public extension Polyline {
 // MARK: - Factory Methods
 
 public extension Polyline {
-    static func polylines(from lineSegments: [LineSegment], absoluteTolerance: CGFloat = 0.0) -> [Polyline] {
+    static func polylines(from lineSegments: [LineSegment], absoluteTolerance: CGFloat = 0) -> [Polyline] {
         // Helper to compare points with optional absoluteTolerance
         // TODO: Just use isApproximatelyEqual
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {
@@ -81,12 +81,12 @@ public extension Polyline {
 // MARK: - Validation Methods
 
 public extension Polyline {
-    func isClosed(absoluteTolerance: CGFloat = 0.0) -> Bool {
+    func isClosed(absoluteTolerance: CGFloat = 0) -> Bool {
         guard vertices.count > 1 else { return false }
         return vertices.first!.isApproximatelyEqual(to: vertices.last!, absoluteTolerance: absoluteTolerance)
     }
     
-    func containsLoops(absoluteTolerance: CGFloat = 0.0) -> Bool {
+    func containsLoops(absoluteTolerance: CGFloat = 0) -> Bool {
         guard vertices.count > 1 else { return false }
         let last = vertices.last!
         for i in 0..<(vertices.count - 1) {

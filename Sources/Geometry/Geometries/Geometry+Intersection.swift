@@ -109,7 +109,7 @@ public extension LineSegment {
     }
     
     /// Check if this segment overlaps with another segment (collinear and share points)
-    func overlaps(_ other: LineSegment, tolerance: CGFloat = 0.5) -> Bool {
+    func overlaps(_ other: LineSegment, tolerance: CGFloat = 1e-1) -> Bool {
         let thisStartOnOther = other.contains(start, within: tolerance)
         let thisEndOnOther = other.contains(end, within: tolerance)
         
