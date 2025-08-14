@@ -12,7 +12,7 @@ public enum SegmentIntersection {
 }
 
 /// Computes the intersection between two line segments, returning the intersection point and parameters
-public func segmentIntersection(_ s1: LineSegment, _ s2: LineSegment) -> SegmentIntersection {
+public func segmentIntersection(_ s1: LineSegment, _ s2: LineSegment, epsilon: CGFloat = 1e-10) -> SegmentIntersection {
     let x1 = s1.start.x, y1 = s1.start.y
     let x2 = s1.end.x, y2 = s1.end.y
     let x3 = s2.start.x, y3 = s2.start.y
@@ -20,7 +20,7 @@ public func segmentIntersection(_ s1: LineSegment, _ s2: LineSegment) -> Segment
 
     let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
 
-    if denom.isApproximatelyEqual(to: 0, absoluteTolerance: 1e-10) {
+    if denom.isApproximatelyEqual(to: 0, absoluteTolerance: epsilon) {
         return .none  // Parallel or collinear
     }
 

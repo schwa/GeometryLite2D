@@ -60,7 +60,7 @@ public func untwistConvexPolygon(_ points: [CGPoint]) -> [CGPoint] {
 /// Computes the convex hull of a set of points using Graham's scan algorithm
 /// - Parameter points: Array of points to compute hull for
 /// - Returns: Array of points forming the convex hull in counter-clockwise order
-public func convexHullGrahamScan(_ points: [CGPoint]) -> [CGPoint] {
+public func convexHullGrahamScan(_ points: [CGPoint], angleEpsilon: CGFloat = 1e-10) -> [CGPoint] {
     guard points.count >= 3 else { return points }
 
     // Find the bottom-most point (or left-most if tied)
@@ -73,7 +73,7 @@ public func convexHullGrahamScan(_ points: [CGPoint]) -> [CGPoint] {
     let sorted = points.filter { $0 != start }.sorted { p1, p2 in
         let angle1 = atan2(p1.y - start.y, p1.x - start.x)
         let angle2 = atan2(p2.y - start.y, p2.x - start.x)
-        if angle1.isApproximatelyEqual(to: angle2, absoluteTolerance: 1e-10) {
+        if angle1.isApproximatelyEqual(to: angle2, absoluteTolerance: angleEpsilon) {
             // If angles are same, closer point comes first
             let dist1 = pow(p1.x - start.x, 2) + pow(p1.y - start.y, 2)
             let dist2 = pow(p2.x - start.x, 2) + pow(p2.y - start.y, 2)
