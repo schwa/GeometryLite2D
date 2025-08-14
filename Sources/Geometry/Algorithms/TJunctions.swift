@@ -6,10 +6,10 @@ import CoreGraphics
 ///
 /// - Parameters:
 ///   - segments: An array of `LineSegment` objects to process for T-junctions.
-///   - epsilon: The maximum allowed distance between endpoints and segment lines to consider as a T-junction.
+///   - absoluteTolerance: The maximum allowed distance between endpoints and segment lines to consider as a T-junction.
 ///   - maxIterations: The maximum number of iterations to attempt resolving T-junctions.
 /// - Returns: A dictionary mapping each original `LineSegment` to an array of resulting `LineSegment`s after T-junction resolution.
-public func resolveTJunctions(segments: [LineSegment], epsilon: CGFloat, maxIterations: Int = 20) -> [LineSegment: [LineSegment]] {
+public func resolveTJunctions(segments: [LineSegment], absoluteTolerance: CGFloat, maxIterations: Int = 20) -> [LineSegment: [LineSegment]] {
     // Initialize the mapping from original segments to themselves
     var segmentMap: [LineSegment: [LineSegment]] = [:]
     for segment in segments {
@@ -27,7 +27,7 @@ public func resolveTJunctions(segments: [LineSegment], epsilon: CGFloat, maxIter
                 for (_, otherSegments) in segmentMap {
                     for other in otherSegments {
                         for point in [other.start, other.end] {
-                            if segment.contains(point, interior: true, absoluteTolerance: epsilon) {
+                            if segment.contains(point, interior: true, absoluteTolerance: absoluteTolerance) {
                                 let splitResult = splits.flatMap { $0.split(at: point) }
                                 if splitResult.count > 1 {
                                     changed = true
