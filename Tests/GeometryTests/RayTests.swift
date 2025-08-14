@@ -36,16 +36,16 @@ import Testing
     let ray = Ray(origin: CGPoint.zero, direction: CGVector(dx: 1, dy: 0))
     let p = CGPoint(x: 3, y: 4)
     let proj = ray.projectedPoint(from: p)
-    #expect(proj.isApproximatelyEqual(to: CGPoint(x: 3, y: 0)))
+    #expect(proj.isApproximatelyEqual(to: CGPoint(x: 3, y: 0), absoluteTolerance: 1e-6))
     let before = CGPoint(x: -2, y: 5)
     let proj2 = ray.projectedPoint(from: before)
-    #expect(proj2.isApproximatelyEqual(to: CGPoint.zero))
+    #expect(proj2.isApproximatelyEqual(to: CGPoint.zero, absoluteTolerance: 1e-6))
 }
 
 @Test func testRayParallelTo() {
     let ray = Ray(origin: CGPoint.zero, direction: CGVector(dx: 2, dy: 0))
     let offsetRay = ray.parallelTo(3)
-    #expect(offsetRay.origin.isApproximatelyEqual(to: CGPoint(x: 0, y: 3)))
+    #expect(offsetRay.origin.isApproximatelyEqual(to: CGPoint(x: 0, y: 3), absoluteTolerance: 1e-6))
     #expect(offsetRay.direction == ray.direction)
 }
 // Note: Precondition failure for zero direction cannot be caught in Swift, so we do not test it here.

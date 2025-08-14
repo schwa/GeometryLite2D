@@ -27,6 +27,6 @@ import Testing
 @Test func testLineParallelTo() {
     let line = Line(p1: .zero, p2: CGPoint(x: 4, y: 0))
     let offsetLine = line.parallelTo(2)
-    #expect(offsetLine.point.isApproximatelyEqual(to: CGPoint(x: 0, y: 2)))
+    #expect(offsetLine.point.isApproximatelyEqual(to: CGPoint(x: 0, y: 2), absoluteTolerance: 1e-6))
     #expect(offsetLine.direction == line.direction)
 }

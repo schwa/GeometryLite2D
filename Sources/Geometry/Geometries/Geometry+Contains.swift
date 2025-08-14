@@ -45,7 +45,7 @@ public extension LineSegment {
     
     /// Checks if this line segment contains another line segment
     /// A segment contains another if the other lies entirely on this segment
-    func contains(_ other: LineSegment, tolerance: CGFloat = 1e-2) -> Bool {
+    func contains(_ other: LineSegment, absoluteTolerance: CGFloat = 1e-2) -> Bool {
         // Check if both endpoints of 'other' lie on 'this' segment
         
         // First check if the segments are collinear
@@ -57,13 +57,13 @@ public extension LineSegment {
         let cross1 = thisVec.x * otherStartVec.y - thisVec.y * otherStartVec.x
         let cross2 = thisVec.x * otherEndVec.y - thisVec.y * otherEndVec.x
         
-        if !cross1.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) || !cross2.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
+        if !cross1.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) || !cross2.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return false // Not collinear
         }
         
         // Check if both endpoints are within the segment bounds
         let thisLength = sqrt(thisVec.x * thisVec.x + thisVec.y * thisVec.y)
-        if thisLength.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
+        if thisLength.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             // Degenerate segment
             return false
         }
@@ -73,33 +73,33 @@ public extension LineSegment {
         let t2 = (otherEndVec.x * thisVec.x + otherEndVec.y * thisVec.y) / (thisLength * thisLength)
         
         // Both projections must be within [0, 1] to be contained
-        return t1 >= -tolerance && t1 <= 1 + tolerance &&
-            t2 >= -tolerance && t2 <= 1 + tolerance
+        return t1 >= -absoluteTolerance && t1 <= 1 + absoluteTolerance &&
+            t2 >= -absoluteTolerance && t2 <= 1 + absoluteTolerance
     }
 }
 
 // MARK: - Ray
 
 public extension Ray {
-    func contains(_ point: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
+    func contains(_ point: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> Bool {
         let toPoint = CGVector(dx: point.x - origin.x, dy: point.y - origin.y)
         let cross = direction.dx * toPoint.dy - direction.dy * toPoint.dx
-        if !cross.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance) {
+        if !cross.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return false
         }
         let dot = direction.dx * toPoint.dx + direction.dy * toPoint.dy
-        return dot >= -tolerance  // Allow for minor floating-point underflow
+        return dot >= -absoluteTolerance  // Allow for minor floating-point underflow
     }
 }
 
 // MARK: - Line
 
 public extension Line {
-    func contains(_ test: CGPoint, tolerance: CGFloat = 1e-6) -> Bool {
+    func contains(_ test: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> Bool {
         let dx = test.x - point.x
         let dy = test.y - point.y
         let cross = dx * direction.dy - dy * direction.dx
-        return cross.isApproximatelyEqual(to: 0, absoluteTolerance: tolerance)
+        return cross.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
     }
 }
 

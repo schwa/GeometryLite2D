@@ -2,7 +2,7 @@ import Collections
 import CoreGraphics
 import SwiftUI
 
-public func thicken(segments: [LineSegment], lineWidth: CGFloat, tolerance _: CGFloat) -> [CappedLineSegment] {
+public func thicken(segments: [LineSegment], lineWidth: CGFloat) -> [CappedLineSegment] {
     print("#######################################")
     var segments = segments
     print("#raw segments", segments.count)

@@ -109,12 +109,12 @@ public extension LineSegment {
     }
     
     /// Check if this segment overlaps with another segment (collinear and share points)
-    func overlaps(_ other: LineSegment, tolerance: CGFloat = 1e-1) -> Bool {
-        let thisStartOnOther = other.contains(start, within: tolerance)
-        let thisEndOnOther = other.contains(end, within: tolerance)
+    func overlaps(_ other: LineSegment, radius: CGFloat = 1e-1) -> Bool {
+        let thisStartOnOther = other.contains(start, within: radius)
+        let thisEndOnOther = other.contains(end, within: radius)
         
-        let otherStartOnThis = self.contains(other.start, within: tolerance)
-        let otherEndOnThis = self.contains(other.end, within: tolerance)
+        let otherStartOnThis = self.contains(other.start, within: radius)
+        let otherEndOnThis = self.contains(other.end, within: radius)
         
         // If either segment is fully contained in the other, they overlap
         return (thisStartOnOther && thisEndOnOther) || (otherStartOnThis && otherEndOnThis)
