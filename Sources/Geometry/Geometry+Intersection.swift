@@ -78,8 +78,45 @@ public extension LineSegment {
         return nil
     }
 
-    func intersects(with rect: CGRect) -> Bool {
+    func intersects(_ rect: CGRect) -> Bool {
         rect.intersects(with: self)
+    }
+    
+    /// Returns the intersection point between two line segments, if any
+    func intersection(_ other: LineSegment) -> CGPoint? {
+        let x1 = start.x, y1 = start.y
+        let x2 = end.x, y2 = end.y
+        let x3 = other.start.x, y3 = other.start.y
+        let x4 = other.end.x, y4 = other.end.y
+        
+        let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        
+        if abs(denom) < 1e-10 {
+            return nil
+        }
+        
+        let t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+        let u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+        
+        if t >= 0 && t <= 1 && u >= 0 && u <= 1 {
+            let x = x1 + t * (x2 - x1)
+            let y = y1 + t * (y2 - y1)
+            return CGPoint(x: x, y: y)
+        }
+        
+        return nil
+    }
+    
+    /// Check if this segment overlaps with another segment (collinear and share points)
+    func overlaps(_ other: LineSegment, tolerance: CGFloat = 0.5) -> Bool {
+        let thisStartOnOther = GeometryUtils.pointOnSegment(start, other, tolerance: tolerance)
+        let thisEndOnOther = GeometryUtils.pointOnSegment(end, other, tolerance: tolerance)
+        
+        let otherStartOnThis = GeometryUtils.pointOnSegment(other.start, self, tolerance: tolerance)
+        let otherEndOnThis = GeometryUtils.pointOnSegment(other.end, self, tolerance: tolerance)
+        
+        // If either segment is fully contained in the other, they overlap
+        return (thisStartOnOther && thisEndOnOther) || (otherStartOnThis && otherEndOnThis)
     }
 }
 

@@ -91,10 +91,6 @@ public extension LineSegment {
         let projectedPoint = start + axis * projectionLength
         return (projectedPoint - point).length <= epsilon
     }
-
-    func contains(_ lineSegment: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
-        contains(lineSegment.start, epsilon: epsilon) && contains(lineSegment.end, epsilon: epsilon)
-    }
 }
 
 public extension LineSegment {

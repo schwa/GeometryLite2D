@@ -100,6 +100,11 @@ public extension Polygon {
 
         return sum / 2
     }
+    
+    /// Alias for simpleArea to match the removed GeometryNew code
+    var signedArea: CGFloat {
+        simpleArea
+    }
 }
 
 public extension Polygon {
