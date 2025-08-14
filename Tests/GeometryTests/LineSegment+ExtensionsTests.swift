@@ -25,10 +25,10 @@ import Testing
     let removeSegment = LineSegment(start: CGPoint(x: 3, y: 0), end: CGPoint(x: 7, y: 0))
     let result = segment.removing(lineSegment: removeSegment)
     #expect(result.count == 2)
-    #expect(result[0].start.isApproximatelyEqual(to: .zero, epsilon: 0.0001))
-    #expect(result[0].end.isApproximatelyEqual(to: CGPoint(x: 3, y: 0), epsilon: 0.0001))
-    #expect(result[1].start.isApproximatelyEqual(to: CGPoint(x: 7, y: 0), epsilon: 0.0001))
-    #expect(result[1].end.isApproximatelyEqual(to: CGPoint(x: 10, y: 0), epsilon: 0.0001))
+    #expect(result[0].start.isApproximatelyEqual(to: .zero, absoluteTolerance: 0.0001))
+    #expect(result[0].end.isApproximatelyEqual(to: CGPoint(x: 3, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[1].start.isApproximatelyEqual(to: CGPoint(x: 7, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[1].end.isApproximatelyEqual(to: CGPoint(x: 10, y: 0), absoluteTolerance: 0.0001))
     let fullRemove = segment.removing(lineSegment: segment)
     #expect(fullRemove.isEmpty)
 }
@@ -39,12 +39,12 @@ import Testing
     let removeSegment2 = LineSegment(start: CGPoint(x: 6, y: 0), end: CGPoint(x: 8, y: 0))
     let result = segment.removing(lineSegments: [removeSegment1, removeSegment2])
     #expect(result.count == 3)
-    #expect(result[0].start.isApproximatelyEqual(to: .zero, epsilon: 0.0001))
-    #expect(result[0].end.isApproximatelyEqual(to: CGPoint(x: 2, y: 0), epsilon: 0.0001))
-    #expect(result[1].start.isApproximatelyEqual(to: CGPoint(x: 4, y: 0), epsilon: 0.0001))
-    #expect(result[1].end.isApproximatelyEqual(to: CGPoint(x: 6, y: 0), epsilon: 0.0001))
-    #expect(result[2].start.isApproximatelyEqual(to: CGPoint(x: 8, y: 0), epsilon: 0.0001))
-    #expect(result[2].end.isApproximatelyEqual(to: CGPoint(x: 10, y: 0), epsilon: 0.0001))
+    #expect(result[0].start.isApproximatelyEqual(to: .zero, absoluteTolerance: 0.0001))
+    #expect(result[0].end.isApproximatelyEqual(to: CGPoint(x: 2, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[1].start.isApproximatelyEqual(to: CGPoint(x: 4, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[1].end.isApproximatelyEqual(to: CGPoint(x: 6, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[2].start.isApproximatelyEqual(to: CGPoint(x: 8, y: 0), absoluteTolerance: 0.0001))
+    #expect(result[2].end.isApproximatelyEqual(to: CGPoint(x: 10, y: 0), absoluteTolerance: 0.0001))
 }
 
 @Test func testLineSegmentSharesVertexAndTJunction() {

@@ -417,11 +417,6 @@ public func perpendicularPoint(from point: CGPoint, direction: CGVector, distanc
     point + direction.normalized.perpendicular * distance
 }
 
-public extension CGPoint {
-    func isApproximatelyEqual(to other: CGPoint, epsilon: CGFloat = 1e-6) -> Bool {
-        abs(x - other.x) <= epsilon && abs(y - other.y) <= epsilon
-    }
-}
 
 public extension CGRect {
     var midXMidY: CGPoint {

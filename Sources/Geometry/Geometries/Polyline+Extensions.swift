@@ -81,14 +81,14 @@ public extension Polyline {
 public extension Polyline {
     func isClosed(epsilon: CGFloat = 0.0) -> Bool {
         guard vertices.count > 1 else { return false }
-        return vertices.first!.isApproximatelyEqual(to: vertices.last!, epsilon: epsilon)
+        return vertices.first!.isApproximatelyEqual(to: vertices.last!, absoluteTolerance: epsilon)
     }
     
     func containsLoops(epsilon: CGFloat = 0.0) -> Bool {
         guard vertices.count > 1 else { return false }
         let last = vertices.last!
         for i in 0..<(vertices.count - 1) {
-            if last.isApproximatelyEqual(to: vertices[i], epsilon: epsilon) {
+            if last.isApproximatelyEqual(to: vertices[i], absoluteTolerance: epsilon) {
                 return true
             }
         }

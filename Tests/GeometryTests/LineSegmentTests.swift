@@ -40,5 +40,5 @@ import Testing
     let directionVector = CGVector(dx: 1, dy: 0)
     let segment = LineSegment(center: centerPoint, width: segmentWidth, direction: directionVector)
     #expect(segment.length == 4)
-    #expect(segment.mid.isApproximatelyEqual(to: centerPoint, epsilon: 0.0001))
+    #expect(segment.mid.isApproximatelyEqual(to: centerPoint, absoluteTolerance: 0.0001))
 }

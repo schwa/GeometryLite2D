@@ -1,0 +1,9 @@
+import Numerics
+import CoreGraphics
+
+public extension CGPoint {
+    func isApproximatelyEqual(to other: CGPoint, absoluteTolerance: CGFloat = 1e-6, relativeTolerance: CGFloat = 0) -> Bool {
+        x.isApproximatelyEqual(to: other.x, absoluteTolerance: absoluteTolerance, relativeTolerance: relativeTolerance)
+        && y.isApproximatelyEqual(to: other.y, absoluteTolerance: absoluteTolerance, relativeTolerance: relativeTolerance)
+    }
+}

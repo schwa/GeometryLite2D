@@ -26,9 +26,9 @@ public struct GeometryUtils {
     }
 
     /// Check if two points are approximately equal within tolerance
-    @available(*, deprecated, message: "Use CGPoint.isApproximatelyEqual(to:epsilon:) instead")
+    @available(*, deprecated, message: "Use CGPoint.isApproximatelyEqual(to:absoluteTolerance:) instead")
     public static func pointsEqual(_ p1: CGPoint, _ p2: CGPoint, tolerance: CGFloat = 0.001) -> Bool {
-        p1.isApproximatelyEqual(to: p2, epsilon: tolerance)
+        p1.isApproximatelyEqual(to: p2, absoluteTolerance: tolerance)
     }
 
     /// Check if a point lies on a line segment within tolerance

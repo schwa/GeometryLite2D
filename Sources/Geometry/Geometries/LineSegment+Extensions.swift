@@ -133,10 +133,10 @@ public extension LineSegment {
     }
     
     func sharesVertex(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
-        self.start.isApproximatelyEqual(to: other.start, epsilon: epsilon) ||
-            self.start.isApproximatelyEqual(to: other.end, epsilon: epsilon) ||
-            self.end.isApproximatelyEqual(to: other.start, epsilon: epsilon) ||
-            self.end.isApproximatelyEqual(to: other.end, epsilon: epsilon)
+        self.start.isApproximatelyEqual(to: other.start, absoluteTolerance: epsilon) ||
+            self.start.isApproximatelyEqual(to: other.end, absoluteTolerance: epsilon) ||
+            self.end.isApproximatelyEqual(to: other.start, absoluteTolerance: epsilon) ||
+            self.end.isApproximatelyEqual(to: other.end, absoluteTolerance: epsilon)
     }
     
     func isTJunction(with other: LineSegment, epsilon: CGFloat = 1e-5) -> Bool {
