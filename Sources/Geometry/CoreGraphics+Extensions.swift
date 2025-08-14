@@ -92,7 +92,8 @@ public extension CGPoint {
             return distance(to: segment.start)
         }
         
-        let t = max(0, min(1, ((x - segment.start.x) * dx + (y - segment.start.y) * dy) / lengthSquared))
+        let dotProduct = (x - segment.start.x) * dx + (y - segment.start.y) * dy
+        let t: CGFloat = Swift.max(0, Swift.min(1, dotProduct / lengthSquared))
         let projection = CGPoint(x: segment.start.x + t * dx, y: segment.start.y + t * dy)
         
         return distance(to: projection)

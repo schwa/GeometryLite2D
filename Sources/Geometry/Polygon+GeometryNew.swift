@@ -11,6 +11,17 @@ public enum SegmentPolygonRelation {
 // MARK: - New Polygon functionality from GeometryNew
 
 public extension Polygon {
+    /// The signed area of the polygon
+    var signedArea: CGFloat {
+        guard vertices.count >= 3 else { return 0 }
+        var acc: CGFloat = 0
+        for i in 0..<vertices.count {
+            let p = vertices[i], q = vertices[(i + 1) % vertices.count]
+            acc += p.x * q.y - q.x * p.y
+        }
+        return 0.5 * acc
+    }
+    
     /// Checks if a line segment is contained within or on the boundary of the polygon
     func contains(_ segment: LineSegment) -> Bool {
         // Fast path: Check if this segment is exactly one of the polygon's edges

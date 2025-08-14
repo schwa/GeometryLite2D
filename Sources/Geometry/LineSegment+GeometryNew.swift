@@ -36,36 +36,6 @@ public extension LineSegment {
         )
     }
     
-    /// Checks if a point lies on this line segment
-    func contains(_ point: CGPoint, tolerance: CGFloat = 0.01) -> Bool {
-        let dx = end.x - start.x
-        let dy = end.y - start.y
-        let lengthSquared = dx * dx + dy * dy
-        
-        if lengthSquared < tolerance * tolerance {
-            // Degenerate segment - check distance to start point
-            let dist = sqrt((point.x - start.x) * (point.x - start.x) + (point.y - start.y) * (point.y - start.y))
-            return dist < tolerance
-        }
-        
-        // Parameter t for the projection of point onto the line
-        let t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared
-        
-        // Check if projection is within segment bounds
-        if t < 0.0 || t > 1.0 {
-            // Point projects outside the segment, check distance to endpoints
-            let distToStart = sqrt((point.x - start.x) * (point.x - start.x) + (point.y - start.y) * (point.y - start.y))
-            let distToEnd = sqrt((point.x - end.x) * (point.x - end.x) + (point.y - end.y) * (point.y - end.y))
-            return min(distToStart, distToEnd) < tolerance
-        }
-        
-        // Point projects onto the segment, check perpendicular distance
-        let projX = start.x + t * dx
-        let projY = start.y + t * dy
-        let dist = sqrt((point.x - projX) * (point.x - projX) + (point.y - projY) * (point.y - projY))
-        return dist < tolerance
-    }
-    
     /// Checks if this line segment contains another line segment
     /// A segment contains another if the other lies entirely on this segment
     func contains(_ other: LineSegment) -> Bool {
@@ -123,6 +93,31 @@ public extension LineSegment {
                intersects(rightEdge) ||
                intersects(bottomEdge) ||
                intersects(leftEdge)
+    }
+    
+    /// Returns the intersection point between two line segments, if any
+    func intersection(_ other: LineSegment) -> CGPoint? {
+        let x1 = start.x, y1 = start.y
+        let x2 = end.x, y2 = end.y
+        let x3 = other.start.x, y3 = other.start.y
+        let x4 = other.end.x, y4 = other.end.y
+        
+        let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        
+        if abs(denom) < 1e-10 {
+            return nil
+        }
+        
+        let t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+        let u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+        
+        if t >= 0 && t <= 1 && u >= 0 && u <= 1 {
+            let x = x1 + t * (x2 - x1)
+            let y = y1 + t * (y2 - y1)
+            return CGPoint(x: x, y: y)
+        }
+        
+        return nil
     }
     
     /// Check if this segment overlaps with another segment (collinear and share points)

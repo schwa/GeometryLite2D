@@ -162,7 +162,7 @@ public struct HalfEdgeMesh<ID: Hashable> {
                 let o = halfEdges[heID.raw].origin
                 pts.append(vertices[o.raw].p)
             }
-            f.signedArea = Polygon(vertices: pts).signedArea
+            f.signedArea = Polygon(pts).signedArea
             builtFaces.append(f)
         }
 
