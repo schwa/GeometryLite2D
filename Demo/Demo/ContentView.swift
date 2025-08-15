@@ -9,7 +9,7 @@ struct InteractiveHandle: Identifiable {
 
 protocol InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle]
-    mutating func handleDidChange(_ handle: InteractiveHandle)
+    mutating func handleDidChange(_ handle: InteractiveHandle, allHandles: inout [InteractiveHandle.ID: InteractiveHandle])
 }
 
 
@@ -38,10 +38,13 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
                                 // Update handle position in state
                                 self.handles[elementID]?[handleID]?.position = newPosition
                                 
-                                // Get the updated handle
-                                if let updatedHandle = self.handles[elementID]?[handleID] {
-                                    // Tell element this handle changed
-                                    elements[elementIndex].handleDidChange(updatedHandle)
+                                // Get the updated handle and all handles for this element
+                                if let updatedHandle = self.handles[elementID]?[handleID],
+                                   var elementHandles = self.handles[elementID] {
+                                    // Tell element this handle changed, allowing it to update other handles
+                                    elements[elementIndex].handleDidChange(updatedHandle, allHandles: &elementHandles)
+                                    // Save the potentially modified handles back
+                                    self.handles[elementID] = elementHandles
                                 }
                             }
                         }
@@ -86,7 +89,7 @@ extension LineSegment: InteractiveRepresentable {
             InteractiveHandle(id: "end", position: end),
         ]
     }
-    mutating func handleDidChange(_ handle: InteractiveHandle) {
+    mutating func handleDidChange(_ handle: InteractiveHandle, allHandles: inout [InteractiveHandle.ID: InteractiveHandle]) {
         switch handle.id {
         case "start":
             start = handle.position
@@ -102,14 +105,21 @@ extension Circle_: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         let edgePoint = CGPoint(x: center.x + radius, y: center.y)
         return [
-            InteractiveHandle(id: "start", position: center),
+            InteractiveHandle(id: "center", position: center),
             InteractiveHandle(id: "edge", position: edgePoint)
         ]
     }
-    mutating func handleDidChange(_ handle: InteractiveHandle) {
+    mutating func handleDidChange(_ handle: InteractiveHandle, allHandles: inout [InteractiveHandle.ID: InteractiveHandle]) {
         switch handle.id {
-        case "start":
+        case "center":
+            let delta = CGVector(dx: handle.position.x - center.x, dy: handle.position.y - center.y)
             center = handle.position
+            // Move edge handle to maintain radius
+            if var edgeHandle = allHandles["edge"] {
+                edgeHandle.position.x += delta.dx
+                edgeHandle.position.y += delta.dy
+                allHandles["edge"] = edgeHandle
+            }
         case "edge":
             // Calculate radius from center to edge handle position
             radius = hypot(handle.position.x - center.x, handle.position.y - center.y)
@@ -128,13 +138,13 @@ extension Shape: InteractiveRepresentable {
             return circle.makeHandles()
         }
     }
-    mutating func handleDidChange(_ handle: InteractiveHandle) {
+    mutating func handleDidChange(_ handle: InteractiveHandle, allHandles: inout [InteractiveHandle.ID: InteractiveHandle]) {
         switch self {
         case .lineSegment(var segment):
-            segment.handleDidChange(handle)
+            segment.handleDidChange(handle, allHandles: &allHandles)
             self = .lineSegment(segment)
         case .circle(var circle):
-            circle.handleDidChange(handle)
+            circle.handleDidChange(handle, allHandles: &allHandles)
             self = .circle(circle)
         }
     }
@@ -144,8 +154,8 @@ extension Identified: InteractiveRepresentable where Value: InteractiveRepresent
     func makeHandles() -> [InteractiveHandle] {
         value.makeHandles()
     }
-    mutating func handleDidChange(_ handle: InteractiveHandle) {
-        value.handleDidChange(handle)
+    mutating func handleDidChange(_ handle: InteractiveHandle, allHandles: inout [InteractiveHandle.ID: InteractiveHandle]) {
+        value.handleDidChange(handle, allHandles: &allHandles)
     }
 }
 
