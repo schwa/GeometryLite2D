@@ -67,17 +67,24 @@ struct CircleProxy: InteractiveProxy {
     var shape: Binding<Circle_>
     var edgePoint: CGPoint
 
+    init(shape: Binding<Circle_>) {
+        self.shape = shape
+        self.edgePoint = shape.wrappedValue.center + CGPoint(x: shape.wrappedValue.radius, y: 0)
+    }
+
     var dragHandles: AnyView {
         AnyView(
             Group {
                 DragHandle(position: Binding(
                     get: { shape.wrappedValue.center },
-                    set: { shape.wrappedValue.center = $0 }
+                    set: {
+                        shape.wrappedValue.center = $0
+                    }
                 ))
-//                DragHandle(position: Binding(
-//                    get: { shape.wrappedValue.end },
-//                    set: { shape.wrappedValue.end = $0 }
-//                ))
+                DragHandle(position: Binding(
+                    get: { edgePoint },
+                    set: { _ in }
+                ))
             }
         )
     }
@@ -125,6 +132,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: shapes, initial: true) {
+            print("SHAPES CHANGED")
             proxies = shapes.enumerated().map { offset, shape in
                 switch shape.value {
                     case .lineSegment:
@@ -146,7 +154,7 @@ struct ContentView: View {
                     } set: { newValue in
                         shapes[offset].value = .circle(newValue)
                     }
-                    return CircleProxy(shape: binding, edgePoint: .zero)
+                    return CircleProxy(shape: binding)
                 }
             }
         }
