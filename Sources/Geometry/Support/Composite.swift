@@ -1,13 +1,13 @@
-internal struct Composite <each T> {
+public struct Composite <each T> {
     private let children: (repeat each T)
 
-    init(_ children: repeat each T) {
+    public init(_ children: repeat each T) {
         self.children = (repeat each children)
     }
 }
 
 extension Composite: Equatable where repeat each T: Equatable {
-    static func == (lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         for (left, right) in repeat (each lhs.children, each rhs.children) {
             guard left == right else {
                 return false
@@ -18,7 +18,7 @@ extension Composite: Equatable where repeat each T: Equatable {
 }
 
 extension Composite: Hashable where repeat each T: Hashable {
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         for child in repeat (each children) {
             child.hash(into: &hasher)
         }
