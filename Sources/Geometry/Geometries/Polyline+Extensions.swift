@@ -8,8 +8,7 @@ import Numerics
 // MARK: - Computed Properties
 
 public extension Polyline {
-    // TODO: Make property Call "segments" instead.
-    func lineSegments() -> [LineSegment] {
+    var segments: [LineSegment] {
         guard vertices.count > 1 else { return [] }
         var segments: [LineSegment] = []
         for i in 0..<vertices.count - 1 {
@@ -25,12 +24,8 @@ public extension Polyline {
 public extension Polyline {
     static func polylines(from lineSegments: [LineSegment], absoluteTolerance: CGFloat = 0) -> [Polyline] {
         // Helper to compare points with optional absoluteTolerance
-        // TODO: Just use isApproximatelyEqual
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {
-            if absoluteTolerance == 0 {
-                return a == b
-            }
-            return a.distance(to: b).isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance)
+            return a.isApproximatelyEqual(to: b, absoluteTolerance: absoluteTolerance)
         }
         
         var remainingSegments = lineSegments

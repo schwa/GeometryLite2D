@@ -1,6 +1,8 @@
 import CoreGraphics
 import SwiftUI
 
+// TODO: Replace all this with PathRepresentable 
+
 public extension Path {
     init(_ circle: Circle) {
         self.init(ellipseIn: .init(center: circle.center, radius: circle.radius))
@@ -88,3 +90,10 @@ public extension Path {
         addLine(to: end)
     }
 }
+
+public extension Path {
+    init(_ segment: CappedLineSegment) {
+        self = Path(segment.polygon)
+    }
+}
+

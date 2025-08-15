@@ -223,7 +223,6 @@ public extension Ray {
 // MARK: -
 
 public extension CGRect {
-    // TODO: Use isApproximatelyEqual.
     func intersects(with lineSegment: LineSegment) -> Bool {
         // 1. If either point is inside the rect, the segment intersects
         if self.contains(lineSegment.start) || self.contains(lineSegment.end) {
@@ -241,16 +240,4 @@ public extension CGRect {
             || lineSegment.intersects(left)
             || lineSegment.intersects(right)
     }
-}
-
-// MARK: Misc
-
-// TODO: Move to extension on CGPoint perhaps?
-public func intersectionOfLines(_ p1: CGPoint, _ d1: CGPoint, _ p2: CGPoint, _ d2: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> CGPoint? {
-    let cross = d1.x * d2.y - d1.y * d2.x
-    guard !cross.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else { return nil }
-
-    let diff = p2 - p1
-    let t = (diff.x * d2.y - diff.y * d2.x) / cross
-    return p1 + d1 * t
 }

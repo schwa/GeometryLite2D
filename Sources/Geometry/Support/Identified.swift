@@ -9,10 +9,3 @@ public struct Identified<ID, Value>: Identifiable where ID: Hashable {
         self.value = value
     }
 }
-
-extension Identified where ID == UUID {
-    public init(_ value: Value) {
-        self.id = UUID()
-        self.value = value
-    }
-}

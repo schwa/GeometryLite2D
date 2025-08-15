@@ -24,13 +24,13 @@ import Testing
 
 @Test func testPolylineLength() {
     let polyline = Polyline(vertices: [CGPoint.zero, CGPoint(x: 3, y: 0), CGPoint(x: 3, y: 4)])
-    let length = polyline.lineSegments().reduce(0) { $0 + $1.length }
+    let length = polyline.segments.reduce(0) { $0 + $1.length }
     #expect(length == 7)
 }
 
 @Test func testPolylineSegment() {
     let polyline = Polyline(vertices: [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1)])
-    let seg = polyline.lineSegments()[1]
+    let seg = polyline.segments[1]
     #expect(seg.start == CGPoint(x: 1, y: 0))
     #expect(seg.end == CGPoint(x: 1, y: 1))
 }
@@ -50,27 +50,27 @@ import Testing
 @Test func testPolylineEmpty() {
     let polyline = Polyline(vertices: [])
     #expect(polyline.vertices.isEmpty)
-    #expect(polyline.lineSegments().isEmpty)
+    #expect(polyline.segments.isEmpty)
 }
 
 @Test func testPolylineSinglePoint() {
     let polyline = Polyline(vertices: [CGPoint.zero])
     #expect(polyline.vertices.count == 1)
-    #expect(polyline.lineSegments().isEmpty)
+    #expect(polyline.segments.isEmpty)
 }
 
 @Test func testPolylineDuplicatePoints() {
     let points = [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1)]
     let polyline = Polyline(vertices: points)
     #expect(polyline.vertices == points)
-    #expect(polyline.lineSegments().count == 3)
+    #expect(polyline.segments.count == 3)
 }
 
 @Test func testPolylineCollinearPoints() {
     let points = [CGPoint.zero, CGPoint(x: 1, y: 0), CGPoint(x: 2, y: 0)]
     let polyline = Polyline(vertices: points)
     #expect(polyline.vertices == points)
-    let length = polyline.lineSegments().reduce(0) { $0 + $1.length }
+    let length = polyline.segments.reduce(0) { $0 + $1.length }
     #expect(length == 2)
 }
 

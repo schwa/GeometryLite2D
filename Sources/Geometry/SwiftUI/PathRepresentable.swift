@@ -44,3 +44,12 @@ extension Polygon: PathRepresentable {
         return path
     }
 }
+
+extension Circle: PathRepresentable {
+    public func makePath() -> Path {
+        let path = Path(ellipseIn: CGRect(
+            center: center, radius: radius
+        ))
+        return path
+    }
+}

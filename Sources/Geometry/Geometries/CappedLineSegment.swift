@@ -255,12 +255,6 @@ extension CappedLineSegment.Cap: CustomDebugStringConvertible {
     }
 }
 
-public extension Path {
-    init(_ segment: CappedLineSegment) {
-        self = Path(segment.polygon)
-    }
-}
-
 extension CappedLineSegment: Sendable {
 }
 
