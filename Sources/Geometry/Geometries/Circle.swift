@@ -23,8 +23,8 @@ public typealias Circle_ = Circle
 
 #if canImport(Playgrounds)
 import Playgrounds
-import Visualization
 import SwiftUI
+import Visualization
 
 #Preview {
     let circle = Circle(center: CGPoint(x: 100, y: 100), radius: 50)
@@ -32,4 +32,3 @@ import SwiftUI
     path.stroke(Color.blue, lineWidth: 2)
 }
 #endif
-

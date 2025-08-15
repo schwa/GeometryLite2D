@@ -39,15 +39,15 @@ extension Line: VisualizationRepresentable {
 extension CGRect {
     static func boundingRect(of points: [CGPoint]) -> CGRect {
         guard !points.isEmpty else { return .zero }
-        
-        let xs = points.map { $0.x }
-        let ys = points.map { $0.y }
-        
+
+        let xs = points.map(\.x)
+        let ys = points.map(\.y)
+
         let minX = xs.min()!
         let maxX = xs.max()!
         let minY = ys.min()!
         let maxY = ys.max()!
-        
+
         return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
     }
 }

@@ -38,30 +38,31 @@ public extension LineSegment {
         let x2 = end.x, y2 = end.y
         let x3 = other.start.x, y3 = other.start.y
         let x4 = other.end.x, y4 = other.end.y
-        
+
         let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        
+
         if denom.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
             return .none  // Parallel or collinear
         }
-        
+
         let t1 = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
         let t2 = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
-        
+
         if t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1 {
             let x = x1 + t1 * (x2 - x1)
             let y = y1 + t1 * (y2 - y1)
             return .point(p: CGPoint(x: x, y: y), t1: t1, t2: t2)
         }
-        
+
         return .none
     }
-    
+
     func intersects(_ lineSegment: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         // First check using the centralized implementation
         switch segmentIntersection(with: lineSegment, absoluteTolerance: absoluteTolerance) {
         case .point:
             return true
+
         case .none:
             // The current segmentIntersection doesn't handle collinear overlaps
             // so we need to check for that case separately
@@ -69,13 +70,13 @@ public extension LineSegment {
             let q = lineSegment.start
             let r = end - start
             let s = lineSegment.end - lineSegment.start
-            
+
             let rxs = r.cross(s)
             let qpxr = (q - p).cross(r)
-            
+
             // Check if lines are collinear
             if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) &&
-               qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
+                qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
                 // Check for overlap
                 let t0 = (q - p).dot(r) / r.dot(r)
                 let t1 = t0 + s.dot(r) / r.dot(r)
@@ -112,26 +113,27 @@ public extension LineSegment {
     func intersects(_ rect: CGRect) -> Bool {
         rect.intersects(with: self)
     }
-    
+
     /// Returns the intersection point between two line segments, if any
     func intersection(_ other: LineSegment, absoluteTolerance: CGFloat = 1e-10) -> CGPoint? {
         // Use the centralized implementation
         switch segmentIntersection(with: other, absoluteTolerance: absoluteTolerance) {
         case .none:
             return nil
+
         case let .point(p, _, _):
             return p
         }
     }
-    
+
     /// Check if this segment overlaps with another segment (collinear and share points)
     func overlaps(_ other: LineSegment, radius: CGFloat = 1e-1) -> Bool {
         let thisStartOnOther = other.contains(start, within: radius)
         let thisEndOnOther = other.contains(end, within: radius)
-        
+
         let otherStartOnThis = self.contains(other.start, within: radius)
         let otherEndOnThis = self.contains(other.end, within: radius)
-        
+
         // If either segment is fully contained in the other, they overlap
         return (thisStartOnOther && thisEndOnOther) || (otherStartOnThis && otherEndOnThis)
     }

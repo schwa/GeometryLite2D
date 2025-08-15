@@ -2,8 +2,8 @@ import CoreGraphics
 
 // MARK: - CGPoint helpers
 
-private func dot(_ a: CGPoint, _ b: CGPoint) -> CGFloat { a.x*b.x + a.y*b.y }
-private func cross(_ a: CGPoint, _ b: CGPoint) -> CGFloat { a.x*b.y - a.y*b.x }
+private func dot(_ a: CGPoint, _ b: CGPoint) -> CGFloat { a.x * b.x + a.y * b.y }
+private func cross(_ a: CGPoint, _ b: CGPoint) -> CGFloat { a.x * b.y - a.y * b.x }
 private func length2(_ v: CGPoint) -> CGFloat { dot(v, v) }
 private func length(_ v: CGPoint) -> CGFloat { sqrt(length2(v)) }
 private func normalize(_ v: CGPoint) -> CGPoint { let l = length(v); return l > 0 ? v / l : .zero }
@@ -123,9 +123,8 @@ public func intersect(_ s1: some _SegmentLike,
             return .infinite(overlap: .init(a: overlap,
                                             b: .init(lower: min(u0, u1), upper: max(u0, u1))),
                              relation: .coincident)
-        } else {
-            return .none()
         }
+        return .none()
     }
 
     // Not parallel — solve for t,u
@@ -135,7 +134,7 @@ public func intersect(_ s1: some _SegmentLike,
     if t >= -epsilon && t <= 1 + epsilon && u >= -epsilon && u <= 1 + epsilon {
         let pt = p + r * t
         let tangent = (abs(t) < epsilon || abs(t - 1) < epsilon ||
-                       abs(u) < epsilon || abs(u - 1) < epsilon)
+                        abs(u) < epsilon || abs(u - 1) < epsilon)
         let hit = Hit<CGFloat, CGFloat>(point: pt, kind: tangent ? .tangent : .crossing, tA: t, tB: u)
         return .finite(hits: [hit], relation: tangent ? .tangentContact : .properIntersect)
     }
@@ -169,13 +168,13 @@ private func _closestPoints(_ s1: _SegmentLike, _ s2: _SegmentLike) -> (a: CGPoi
     } else {
         let b = dot(d1, d2)
         let c = dot(d1, r)
-        let denom = a*e - b*b
-        if denom != 0 { s = clamp((b*f - c*e) / denom, 0, 1) } else { s = 0 }
-        let tUnclamped = (b*s + f) / e
+        let denom = a * e - b * b
+        if denom != 0 { s = clamp((b * f - c * e) / denom, 0, 1) } else { s = 0 }
+        let tUnclamped = (b * s + f) / e
         t = clamp(tUnclamped, 0, 1)
         // Recompute s if t was clamped
         let tDiff = t - tUnclamped
-        if abs(tDiff) > 0 { s = clamp((b*t - c) / a, 0, 1) }
+        if abs(tDiff) > 0 { s = clamp((b * t - c) / a, 0, 1) }
     }
 
     return (p1 + d1 * s, p2 + d2 * t)
@@ -203,17 +202,17 @@ public func intersect(_ seg: some _SegmentLike,
             let n = normalize(m)
             let hit = Hit<CGFloat, CGFloat>(point: p, kind: .tangent, tA: 0, tB: 0, normalB: n)
             return .finite(hits: [hit], relation: .tangentContact)
-        } else if dist < cir.radius {
-            return .finite(hits: [], relation: .containment)
-        } else {
-            return .none(closest: (a: p, b: cir.center + normalize(m) * cir.radius), separation: abs(dist - cir.radius))
         }
+        if dist < cir.radius {
+            return .finite(hits: [], relation: .containment)
+        }
+        return .none(closest: (a: p, b: cir.center + normalize(m) * cir.radius), separation: abs(dist - cir.radius))
     }
 
-    let disc = B*B - 4*A*C
+    let disc = B * B - 4 * A * C
     if disc < -epsilon { // no real roots
         // report closest point & separation
-        let t = clamp(-dot(m, d)/A, 0, 1)
+        let t = clamp(-dot(m, d) / A, 0, 1)
         let cp = p + d * t
         let delta = length(cp - cir.center) - cir.radius
         return .none(closest: (a: cp, b: cir.center + normalize(cp - cir.center) * cir.radius), separation: abs(delta))
@@ -221,21 +220,20 @@ public func intersect(_ seg: some _SegmentLike,
 
     if abs(disc) <= epsilon {
         // Tangent (one hit)
-        let t = -B / (2*A)
+        let t = -B / (2 * A)
         if t >= -epsilon && t <= 1 + epsilon {
             let pt = p + d * t
             let n = normalize(pt - cir.center)
             let hit = Hit<CGFloat, CGFloat>(point: pt, kind: .tangent, tA: t, tB: 0, normalB: n)
             return .finite(hits: [hit], relation: .tangentContact)
-        } else {
-            return .none()
         }
+        return .none()
     }
 
     // Two roots
     let sqrtDisc = sqrt(max(disc, 0))
-    var t0 = (-B - sqrtDisc) / (2*A)
-    var t1 = (-B + sqrtDisc) / (2*A)
+    var t0 = (-B - sqrtDisc) / (2 * A)
+    var t1 = (-B + sqrtDisc) / (2 * A)
     if t0 > t1 { swap(&t0, &t1) }
 
     var hits: [Hit<CGFloat, CGFloat>] = []
@@ -281,9 +279,11 @@ public func intersect(_ seg: some _SegmentLike,
                                 featureA: .edge(-1), // segment has implicit single edge
                                 featureB: .edge(i)))
             }
+
         case .infinite(let ov, _):
             spans.append(Span(featureA: .edge(-1), rangeA: ov.a,
-                              featureB: .edge(i),  rangeB: ov.b))
+                              featureB: .edge(i), rangeB: ov.b))
+
         case .none:
             break
         }
@@ -307,12 +307,12 @@ private struct _Segment: _SegmentLike { let start: CGPoint; let end: CGPoint }
 private func _pointInPolygon(_ p: CGPoint, _ verts: [CGPoint], epsilon: CGFloat) -> Bool {
     // quick on-edge test
     for i in 0..<verts.count {
-        let a = verts[i]; let b = verts[(i+1)%verts.count]
+        let a = verts[i]; let b = verts[(i + 1) % verts.count]
         if approxZero(cross(b - a, p - a), eps: epsilon) && dot(p - a, p - b) <= 0 { return true }
     }
     var inside = false
     for i in 0..<verts.count {
-        let a = verts[i]; let b = verts[(i+1)%verts.count]
+        let a = verts[i]; let b = verts[(i + 1) % verts.count]
         let condY = (a.y > p.y) != (b.y > p.y)
         if condY {
             let xi = a.x + (b.x - a.x) * (p.y - a.y) / ((b.y - a.y) + 1e-300)
@@ -325,7 +325,6 @@ private func _pointInPolygon(_ p: CGPoint, _ verts: [CGPoint], epsilon: CGFloat)
 import SwiftUI
 
 struct DragHandle: View {
-
     @Binding
     var position: CGPoint
 
@@ -336,30 +335,29 @@ struct DragHandle: View {
             .position(position)
             .gesture(
                 DragGesture()
-                .onChanged { value in
-                    position = value.location
-                }
+                    .onChanged { value in
+                        position = value.location
+                    }
             )
     }
 }
 
-
 #Preview {
     @Previewable
     @State
-    var circleCenter: CGPoint = CGPoint(x: 150, y: 150)
+    var circleCenter = CGPoint(x: 150, y: 150)
 
     @Previewable
     @State
-    var circleEdgePoint: CGPoint = CGPoint(x: 200, y: 150)
+    var circleEdgePoint = CGPoint(x: 200, y: 150)
 
     @Previewable
     @State
-    var segmentVertex0: CGPoint = CGPoint(x: 100, y: 100)
+    var segmentVertex0 = CGPoint(x: 100, y: 100)
 
     @Previewable
     @State
-    var segmentVertex1: CGPoint = CGPoint(x: 250, y: 100)
+    var segmentVertex1 = CGPoint(x: 250, y: 100)
 
     @Previewable
     @State
@@ -373,11 +371,9 @@ struct DragHandle: View {
     @State
     var intersection: Intersection<CGFloat, CGFloat>?
 
-
-
     VStack {
         ZStack {
-            Canvas { context, size in
+            Canvas { context, _ in
                 context.stroke(Path(representable: circle), with: .color(.red), lineWidth: 2)
                 let segment = LineSegment(start: segmentVertex0, end: segmentVertex1)
                 context.stroke(Path(representable: segment), with: .color(.green), lineWidth: 2)
@@ -389,14 +385,15 @@ struct DragHandle: View {
                         if let closest {
                             marks = [closest.a, closest.b]
                         }
+
                     case .finite(let hits, let spans, let relation):
-                        marks = hits.map { $0.point }
+                        marks = hits.map(\.point)
+
                     case .infinite(let overlap, let relation):
                         break
                     }
                     for mark in marks {
                         context.fill(Path(ellipseIn: CGRect(origin: mark - CGPoint(x: 5, y: 5), size: CGSize(width: 10, height: 10))), with: .color(.purple))
-
                     }
                 }
             }

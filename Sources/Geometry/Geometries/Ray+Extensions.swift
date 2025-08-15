@@ -18,24 +18,24 @@ public extension Ray {
         CGPoint(x: origin.x + direction.dx * t,
                 y: origin.y + direction.dy * t)
     }
-    
+
     // Project a point onto the ray (clamped to t >= 0)
     func projectedPoint(from point: CGPoint) -> CGPoint {
         let toPoint = CGVector(dx: point.x - origin.x, dy: point.y - origin.y)
         let dirLengthSq = direction.dx * direction.dx + direction.dy * direction.dy
         guard dirLengthSq > 0 else { return origin }
-        
+
         let dot = direction.dx * toPoint.dx + direction.dy * toPoint.dy
         let t = max(0, dot / dirLengthSq)
         return self.point(at: t)
     }
-    
+
     func parallelTo(_ offset: CGFloat) -> Ray {
         let unit = direction.normalized
-        
+
         // Rotate 90° CCW to get the normal vector
         let normal = CGVector(dx: -unit.dy, dy: unit.dx)
-        
+
         let offsetVector = CGVector(dx: normal.dx * offset, dy: normal.dy * offset)
         return Ray(origin: origin + offsetVector, direction: direction)
     }

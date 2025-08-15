@@ -20,7 +20,7 @@ public struct Junction {
 extension Junction: Equatable {
     public static func == (lhs: Junction, rhs: Junction) -> Bool {
         // Since vertices are already sorted in init, we can directly compare
-        return lhs.center == rhs.center && lhs.vertices == rhs.vertices
+        lhs.center == rhs.center && lhs.vertices == rhs.vertices
     }
 }
 
@@ -87,7 +87,7 @@ public extension Junction {
             if uniqueSegments.count < 2 {
                 continue // Skip if only one segment has endpoints here
             }
-            
+
             // Average cluster center
             let center = cluster.map(\.point).reduce(.zero, +) / CGFloat(cluster.count)
             // Collect opposite endpoints of each line segment

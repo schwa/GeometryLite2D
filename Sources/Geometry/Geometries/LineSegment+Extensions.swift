@@ -22,31 +22,30 @@ public extension LineSegment {
     var points: [CGPoint] {
         [start, end]
     }
-    
+
     var mid: CGPoint {
         (start + end) / 2
     }
-    
+
     var length: CGFloat {
         (end - start).length
     }
-    
+
     var angle: Angle {
         Angle(radians: atan2(end.y - start.y, end.x - start.x))
     }
-    
+
     func reversed() -> LineSegment {
         LineSegment(end, start)
     }
-    
+
     func sorted() -> LineSegment {
         if start.compare(to: end, using: .yThenX) == .orderedAscending {
             return self
-        } else {
-            return reversed()
         }
+        return reversed()
     }
-    
+
     func split(at point: CGPoint, absoluteTolerance: CGFloat = 1e-5) -> [LineSegment] {
         if !contains(point, absoluteTolerance: absoluteTolerance) {
             return [self]
@@ -59,24 +58,24 @@ public extension LineSegment {
             LineSegment(point, end)
         ]
     }
-    
+
     var direction: CGVector {
         CGVector((end - start).normalized)
     }
-    
+
     var normal: CGVector {
         direction.perpendicular.normalized
     }
-    
+
     var vector: CGVector {
         CGVector(end - start)
     }
-    
+
     func parallel(by offset: CGFloat) -> LineSegment {
         let n = self.normal * offset
         return .init(start: start + n, end: end + n)
     }
-    
+
     func removing(lineSegment: LineSegment) -> [LineSegment] {
         guard start != end else {
             fatalError("Degenerate line segment")
@@ -84,46 +83,46 @@ public extension LineSegment {
         if self == lineSegment {
             return []
         }
-        
+
         let axis = (end - start).normalized
         let length = (end - start).length
-        
+
         // Function to project a point onto this segment's axis
         func project(_ point: CGPoint) -> CGFloat {
             (point - start).dot(axis)
         }
-        
+
         let selfStartScalar: CGFloat = 0
         let selfEndScalar: CGFloat = length
-        
+
         let otherStart = project(lineSegment.start)
         let otherEnd = project(lineSegment.end)
-        
+
         let removalStart = max(min(otherStart, otherEnd), selfStartScalar)
         let removalEnd = min(max(otherStart, otherEnd), selfEndScalar)
-        
+
         // No overlap
         if removalStart >= removalEnd {
             return [self]
         }
-        
+
         var result: [LineSegment] = []
-        
+
         if removalStart > selfStartScalar {
             let segmentStart = start
             let segmentEnd = start + axis * removalStart
             result.append(LineSegment(start: segmentStart, end: segmentEnd))
         }
-        
+
         if removalEnd < selfEndScalar {
             let segmentStart = start + axis * removalEnd
             let segmentEnd = end
             result.append(LineSegment(start: segmentStart, end: segmentEnd))
         }
-        
+
         return result
     }
-    
+
     func removing(lineSegments: [LineSegment]) -> [LineSegment] {
         var remainingSegments: [LineSegment] = [self]
         for segmentToRemove in lineSegments {
@@ -131,14 +130,14 @@ public extension LineSegment {
         }
         return remainingSegments
     }
-    
+
     func sharesVertex(with other: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         self.start.isApproximatelyEqual(to: other.start, absoluteTolerance: absoluteTolerance) ||
             self.start.isApproximatelyEqual(to: other.end, absoluteTolerance: absoluteTolerance) ||
             self.end.isApproximatelyEqual(to: other.start, absoluteTolerance: absoluteTolerance) ||
             self.end.isApproximatelyEqual(to: other.end, absoluteTolerance: absoluteTolerance)
     }
-    
+
     func isTJunction(with other: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
         // Check if one of the endpoints of `other` lies on this segment (interior only)
         let otherStartOnSelf = self.contains(other.start, interior: true, absoluteTolerance: absoluteTolerance)

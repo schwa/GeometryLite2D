@@ -22,27 +22,27 @@ public extension Polygon {
             LineSegment(vertices[i], vertices[(i + 1) % vertices.count])
         }
     }
-    
+
     /// The signed area of the polygon using the shoelace formula.
     /// For simple polygons, a positive area indicates counter-clockwise winding.
     var simpleArea: CGFloat {
         guard vertices.count >= 3 else { return 0 }
-        
+
         var sum: CGFloat = 0
         for i in 0..<vertices.count {
             let current = vertices[i]
             let next = vertices[(i + 1) % vertices.count]
             sum += (current.x * next.y) - (next.x * current.y)
         }
-        
+
         return sum / 2
     }
-    
+
     /// Alias for simpleArea to match the removed GeometryNew code
     var signedArea: CGFloat {
         simpleArea
     }
-    
+
     /// Returns the winding order of the polygon
     var winding: Winding {
         simpleArea >= 0 ? .counterClockwise : .clockwise
@@ -71,19 +71,19 @@ public extension Polygon {
         }
         return true
     }
-    
+
     /// Returns `true` if the polygon is convex (all interior angles < 180°).
     var isConvex: Bool {
         guard vertices.count >= 3 else { return false }
-        
+
         var initialSign: Bool?
         for i in 0..<vertices.count {
             let a = vertices[i]
             let b = vertices[(i + 1) % vertices.count]
             let c = vertices[(i + 2) % vertices.count]
-            
+
             let cross = CGPoint.cross(a, b, c)
-            
+
             if cross != 0 {
                 let currentSign = cross > 0
                 if let sign = initialSign {
@@ -95,7 +95,7 @@ public extension Polygon {
                 }
             }
         }
-        
+
         return true
     }
 }
@@ -116,7 +116,7 @@ public extension Polygon {
     static func merge(polygons: [Polygon]) -> [Polygon] {
         var remaining = polygons
         var merged: [Polygon] = []
-        
+
         while !remaining.isEmpty {
             var base = remaining.removeFirst()
             var didMerge = false
@@ -152,18 +152,18 @@ public extension Polygon {
         let edges = Set(edges)
         self.init(edges: edges)
     }
-    
+
     init?(edges: Set<LineSegment>) {
         guard let start = edges.first else { return nil }
-        
+
         var edgeMap: [CGPoint: [CGPoint]] = [:]
         for edge in edges {
             edgeMap[edge.start, default: []].append(edge.end)
         }
-        
+
         var path: [CGPoint] = [start.start, start.end]
         var usedEdges = Set([start])
-        
+
         while path.first != path.last {
             guard let nextCandidates = edgeMap[path.last!],
                   let next = nextCandidates.first(where: { candidate in
@@ -172,16 +172,16 @@ public extension Polygon {
                   }) else {
                 return nil // Cannot complete loop
             }
-            
+
             path.append(next)
             usedEdges.insert(LineSegment(path[path.count - 2], next))
         }
-        
+
         let uniquePoints = Set(path.dropLast())
         if uniquePoints.count < 3 {
             return nil
         }
-        
+
         self = Polygon(Array(path.dropLast()))
     }
 }
@@ -193,31 +193,31 @@ public extension Polygon {
         guard vertices.count >= 3 else {
             return self
         }
-        
+
         var result: [CGPoint] = []
         let count = vertices.count
-        
+
         for i in 0..<count {
             let prev = vertices[(i - 1 + count) % count]
             let current = vertices[i]
             let next = vertices[(i + 1) % count]
-            
+
             if let last = result.last, last.distance(to: current).isApproximatelyEqual(to: 0, absoluteTolerance: distanceEpsilon) {
                 continue
             }
-            
+
             if CGPoint.areColinear(prev, current, next, absoluteTolerance: colinearEpsilon) {
                 continue
             }
-            
+
             result.append(current)
         }
-        
+
         // Cleanup degenerate loop
         if result.count >= 2, result.first!.distance(to: result.last!).isApproximatelyEqual(to: 0, absoluteTolerance: distanceEpsilon) {
             result.removeFirst()
         }
-        
+
         // Only return result if it's still a valid polygon
         if result.count >= 3 {
             return Polygon(result)

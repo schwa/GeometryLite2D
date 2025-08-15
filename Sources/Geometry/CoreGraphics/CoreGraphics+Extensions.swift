@@ -418,7 +418,6 @@ public func perpendicularPoint(from point: CGPoint, direction: CGVector, distanc
     point + direction.normalized.perpendicular * distance
 }
 
-
 public extension CGRect {
     var midXMidY: CGPoint {
         CGPoint(x: midX, y: midY)

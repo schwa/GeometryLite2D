@@ -25,16 +25,16 @@ public extension Polyline {
     static func polylines(from lineSegments: [LineSegment], absoluteTolerance: CGFloat = 0) -> [Polyline] {
         // Helper to compare points with optional absoluteTolerance
         func pointsEqual(_ a: CGPoint, _ b: CGPoint) -> Bool {
-            return a.isApproximatelyEqual(to: b, absoluteTolerance: absoluteTolerance)
+            a.isApproximatelyEqual(to: b, absoluteTolerance: absoluteTolerance)
         }
-        
+
         var remainingSegments = lineSegments
         var polylines: [Polyline] = []
-        
+
         while !remainingSegments.isEmpty {
             let current = remainingSegments.removeFirst()
             var vertices = [current.start, current.end]
-            
+
             var extended = true
             while extended {
                 extended = false
@@ -65,10 +65,10 @@ public extension Polyline {
                     }
                 }
             }
-            
+
             polylines.append(Polyline(vertices: vertices))
         }
-        
+
         return polylines
     }
 }
@@ -80,7 +80,7 @@ public extension Polyline {
         guard vertices.count > 1 else { return false }
         return vertices.first!.isApproximatelyEqual(to: vertices.last!, absoluteTolerance: absoluteTolerance)
     }
-    
+
     func containsLoops(absoluteTolerance: CGFloat = 0) -> Bool {
         guard vertices.count > 1 else { return false }
         let last = vertices.last!
