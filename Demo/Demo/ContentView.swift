@@ -2,13 +2,14 @@ import SwiftUI
 import Geometry
 import Visualization
 
-struct InteractiveHandle {
+struct InteractiveHandle: Identifiable {
+    var id: String
     var position: CGPoint
 }
 
 protocol InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle]
-    mutating func handlesDidChange(_ handles: [InteractiveHandle])
+    mutating func handleDidChange(_ handle: InteractiveHandle)
 }
 
 
@@ -19,7 +20,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
     var id: KeyPath<Element, ElementID>
 
     @State
-    var handles: [ElementID: [UUID: InteractiveHandle]] = [:]
+    var handles: [ElementID: [InteractiveHandle.ID: InteractiveHandle]] = [:]
 
     var elementIDs: [ElementID] {
         elements.map { $0[keyPath: id] }
@@ -33,21 +34,6 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
                     let binding = Binding<CGPoint>(
                         get: { handle.position },
                         set: { newPosition in
-                            if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
-                                      // Update handle position
-                                      self.handles[elementID]?[handleID]?.position = newPosition
-
-                                      // Get all handles for this element in order
-                                      if let elementHandles = self.handles[elementID] {
-                                          // Sort by UUID to maintain consistent ordering
-                                          let sortedHandles = elementHandles
-                                              .sorted(by: { $0.key.uuidString < $1.key.uuidString })
-                                              .map { $0.value }
-
-                                          // Update element with new handle positions
-                                          elements[elementIndex].handlesDidChange(sortedHandles)
-                                      }
-                                  }
                         }
                     )
                     DragHandle(position: binding)
@@ -58,7 +44,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
             for (elementID, element) in zip(elementIDs, elements) {
                 let handles = element.makeHandles()
                 self.handles[elementID] = Dictionary(uniqueKeysWithValues: handles.map { handle in
-                    (UUID(), handle)
+                    (handle.id, handle)
                 })
             }
         }
@@ -86,15 +72,19 @@ struct ContentView: View {
 extension LineSegment: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         return [
-            InteractiveHandle(position: start),
-            InteractiveHandle(position: end),
+            InteractiveHandle(id: "start", position: start),
+            InteractiveHandle(id: "end", position: end),
         ]
     }
-    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
-        guard handles.count == 2 else { return }
-        start = handles[0].position
-        end = handles[1].position
-
+    mutating func handleDidChange(_ handle: InteractiveHandle) {
+        switch handle.id {
+        case "start":
+            start = handle.position
+        case "end":
+            end = handle.position
+        default:
+            fatalError()
+        }
     }
 }
 
@@ -102,19 +92,20 @@ extension Circle_: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         let edgePoint = CGPoint(x: center.x + radius, y: center.y)
         return [
-            InteractiveHandle(position: center),
-            InteractiveHandle(position: edgePoint)
+            InteractiveHandle(id: "start", position: center),
+            InteractiveHandle(id: "edge", position: edgePoint)
         ]
     }
-    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
-        guard handles.count == 2 else { return }
-        center = handles[0].position
-        
-        // Calculate radius from edge handle position
-        let edge = handles[1].position
-        let dx = edge.x - center.x
-        let dy = edge.y - center.y
-        radius = sqrt(dx * dx + dy * dy)
+    mutating func handleDidChange(_ handle: InteractiveHandle) {
+        switch handle.id {
+        case "start":
+            center = handle.position
+        case "edge":
+            // Calculate radius from center to edge handle position
+            radius = hypot(handle.position.x - center.x, handle.position.y - center.y)
+        default:
+            fatalError()
+        }
     }
 }
 
@@ -127,25 +118,24 @@ extension Shape: InteractiveRepresentable {
             return circle.makeHandles()
         }
     }
-    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
+    mutating func handleDidChange(_ handle: InteractiveHandle) {
         switch self {
         case .lineSegment(var segment):
-            segment.handlesDidChange(handles)
+            segment.handleDidChange(handle)
             self = .lineSegment(segment)
         case .circle(var circle):
-            circle.handlesDidChange(handles)
+            circle.handleDidChange(handle)
             self = .circle(circle)
         }
     }
-
 }
 
 extension Identified: InteractiveRepresentable where Value: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         value.makeHandles()
     }
-    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
-        value.handlesDidChange(handles)
+    mutating func handleDidChange(_ handle: InteractiveHandle) {
+        value.handleDidChange(handle)
     }
 }
 
