@@ -11,18 +11,18 @@ protocol InteractiveProxy {
 }
 
 struct AnyInteractiveProxy<Element> {
-         private let _makeDragHandles: (Binding<Element>) -> AnyView
+    private let _makeDragHandles: (Binding<Element>) -> AnyView
 
-         init<P: InteractiveProxy>(_ proxy: P) where P.Element == Element {
-             self._makeDragHandles = { binding in
-                 AnyView(proxy.makeDragHandles(shape: binding))
-             }
-         }
+    init<P: InteractiveProxy>(_ proxy: P) where P.Element == Element {
+        self._makeDragHandles = { binding in
+            AnyView(proxy.makeDragHandles(shape: binding))
+        }
+    }
 
-         func makeDragHandles(shape: Binding<Element>) -> AnyView {
-             _makeDragHandles(shape)
-         }
-     }
+    func makeDragHandles(shape: Binding<Element>) -> AnyView {
+        _makeDragHandles(shape)
+    }
+}
 
 struct LineSegmentProxy: InteractiveProxy {
     func makeDragHandles(shape: Binding<LineSegment>) -> some View {
@@ -104,7 +104,8 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
             for element in elements {
                 let id = element[keyPath: id]
                 let proxy = makeProxy(element)
-                proxies[id] = AnyInteractiveProxy(proxy)
+                let typeErasedProxy = AnyInteractiveProxy<Element>(proxy)
+                proxies[id] = typeErasedProxy
             }
         }
     }
