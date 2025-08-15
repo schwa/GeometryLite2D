@@ -1,130 +1,93 @@
 import SwiftUI
-import Visualization
-import Interaction
 import Geometry
+import Visualization
 
-extension Circle_: @retroactive InteractiveProxyRepresentable {
-    public struct Proxy: InteractiveProxy {
-        var center: CGPoint
-        var edgePoint: CGPoint
+enum Shape {
+    case lineSegment(LineSegment)
+    case circle(Circle_)
+}
 
-        init(center: CGPoint, edgePoint: CGPoint) {
-            self.center = center
-            self.edgePoint = edgePoint
-        }
-
-        public var handles: [Handle] {
-            return [
-                Handle(getter: { (proxy: Proxy) -> CGPoint in
-                    proxy.center
-                }, setter: { (proxy: inout Proxy, value: CGPoint) in
-                    let delta = value - proxy.center
-                    proxy.center = value
-                    proxy.edgePoint += delta
-                }),
-                Handle(getter: { (proxy: Proxy) -> CGPoint in
-                    proxy.edgePoint
-                }, setter: { (proxy: inout Proxy, value: CGPoint) in
-                    proxy.edgePoint = value
-                })
-            ]
-        }
-
-        public func draw(in context: GraphicsContext) {
-            let circle = Circle(center: center, radius: edgePoint.distance(to: center))
-            context.stroke(Path(representable: circle), with: .color(.black))
+extension Shape: VisualizationRepresentable {
+    var boundingRect: CGRect {
+        switch self {
+        case .lineSegment(let segment):
+            return segment.boundingRect
+        case .circle(let circle):
+            return circle.boundingRect
         }
     }
 
-    public func makeInteractiveProxy() -> Proxy {
-        return Proxy(center: center, edgePoint: center + [0, radius])
-    }
-    
-    public func updateFromProxy(_ proxy: Proxy) -> Circle_ {
-        let newRadius = proxy.edgePoint.distance(to: proxy.center)
-        return Circle_(center: proxy.center, radius: newRadius)
+    func visualize(in context: GraphicsContext, style: Visualization.VisualizationStyle, transform: CGAffineTransform) {
+        switch self {
+        case .lineSegment(let segment):
+            segment.visualize(in: context, style: style, transform: transform)
+        case .circle(let circle):
+            circle.visualize(in: context, style: style, transform: transform)
+        }
     }
 }
 
-extension LineSegment: @retroactive InteractiveProxyRepresentable {
-    public struct Proxy: InteractiveProxy {
-        var start: CGPoint
-        var end: CGPoint
-        
-        init(start: CGPoint, end: CGPoint) {
-            self.start = start
-            self.end = end
-        }
-        
-        public var handles: [Handle] {
-            return [
-                Handle(getter: { (proxy: Proxy) -> CGPoint in
-                    proxy.start
-                }, setter: { (proxy: inout Proxy, value: CGPoint) in
-                    proxy.start = value
-                }),
-                Handle(getter: { (proxy: Proxy) -> CGPoint in
-                    proxy.end
-                }, setter: { (proxy: inout Proxy, value: CGPoint) in
-                    proxy.end = value
-                })
-            ]
-        }
-        
-        public func draw(in context: GraphicsContext) {
-            let segment = LineSegment(start: start, end: end)
-            context.stroke(Path(representable: segment), with: .color(.black))
-        }
-    }
-    
-    public func makeInteractiveProxy() -> Proxy {
-        return Proxy(start: start, end: end)
-    }
-    
-    public func updateFromProxy(_ proxy: Proxy) -> LineSegment {
-        return LineSegment(start: proxy.start, end: proxy.end)
+struct DragHandle: View {
+    @Binding
+    var position: CGPoint
+
+    var body: some View {
+        Circle()
+        .fill(Color.blue)
+        .frame(width: 10, height: 10)
+        .position(position)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    position = value.location
+                }
+        )
     }
 }
 
 struct ContentView: View {
     @State
-    var shapes: [any InteractiveProxyRepresentable] = [
-        LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 250, y: 100)),
-        Circle_(center: CGPoint(x: 150, y: 150), radius: 50),
-        Circle_(center: CGPoint(x: 250, y: 150), radius: 50),
+    var shapes: [Identified<UUID, Shape>] = [
+        .init(id: .init(), value: .lineSegment(LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 250, y: 100)))),
+        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 150, y: 150), radius: 50))),
+        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 250, y: 150), radius: 50))),
     ]
 
-    @State
-    var intersection: Intersection<CGFloat, CGFloat>?
-
     var body: some View {
-        VStack {
-            InteractiveCanvas(
-                elements: Binding(
-                    get: { Array(shapes.enumerated()) },
-                    set: { newValue in 
-                        shapes = newValue.map { $0.1 }
-                    }
-                ),
-                id: \.0,  // Use the index as ID
-                makeProxy: { (_, element) in
-                    element.makeInteractiveProxy()
-                },
-                updateElement: { element, proxy in
-                    let (index, element) = element
-                    if let circle = element as? Circle_, let circleProxy = proxy as? Circle_.Proxy {
-                        return (index, circle.updateFromProxy(circleProxy) as any InteractiveProxyRepresentable)
-                    } else if let segment = element as? LineSegment, let segmentProxy = proxy as? LineSegment.Proxy {
-                        return (index, segment.updateFromProxy(segmentProxy) as any InteractiveProxyRepresentable)
-                    }
-                    return (index, element)
+        ZStack {
+            Canvas { context, size in
+                for shape in shapes {
+                    shape.value.visualize(in: context, style: .init(), transform: .identity)
                 }
-            )
+            }
+            ForEach(shapes.enumerated(), id: \.element.id) { offset, shape in
+                switch shape.value {
+                case .lineSegment(let segment):
+                    let segment = Binding {
+                        return segment
+                    } set: { newValue in
+                        shapes[offset].value = .lineSegment(newValue)
+                    }
+                    DragHandle(position: Binding(
+                        get: { segment.wrappedValue.start },
+                        set: { segment.wrappedValue.start = $0 }
+                    ))
+                    DragHandle(position: Binding(
+                        get: { segment.wrappedValue.end },
+                        set: { segment.wrappedValue.end = $0 }
+                    ))
+                case .circle(let circle):
+                    let circle = Binding {
+                        return circle
+                    } set: { newValue in
+                        shapes[offset].value = .circle(newValue)
+                    }
+                    DragHandle(position: Binding(
+                        get: { circle.wrappedValue.center },
+                        set: { circle.wrappedValue.center = $0 }
+                    ))
+                }
+            }
         }
     }
 }
-
-#Preview {
-    ContentView()
-}
-
