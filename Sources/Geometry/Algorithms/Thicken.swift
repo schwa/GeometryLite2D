@@ -3,13 +3,13 @@ import CoreGraphics
 import SwiftUI
 
 public func thicken(segments: [LineSegment], lineWidth: CGFloat) -> [CappedLineSegment] {
-    print("#######################################")
+    // Debug: Processing segments
     var segments = segments
-    print("#raw segments", segments.count)
+    // Raw segments: \(segments.count)
     segments = segments.filter { $0.length > 1e-06 }
-    print("#long enough segments", segments.count)
+    // Long enough segments: \(segments.count)
     segments = segments.map { $0.sorted() }.uniqued()
-    print("#unique segments", segments.count)
+    // Unique segments: \(segments.count)
 
     let junctions = Junction.findJunctions(lineSegments: segments, absoluteTolerance: 0)
     return thicken(junctions: junctions, lineWidth: lineWidth, miterLimit: nil)
@@ -18,10 +18,10 @@ public func thicken(segments: [LineSegment], lineWidth: CGFloat) -> [CappedLineS
 // MARK: -
 
 public func thicken(junctions: [Junction], lineWidth: CGFloat, miterLimit _: CGFloat?) -> [CappedLineSegment] {
-    print("#junctions", junctions.count)
-    print("#junction vertices", junctions.map(\.vertices.count).reduce(0, +))
+    // Junctions: \(junctions.count)
+    // Junction vertices: \(junctions.map(\.vertices.count).reduce(0, +))
     let junctions = junctions.map { $0.normalized() }
-    print("#normalized junction vertices", junctions.map(\.vertices.count).reduce(0, +))
+    // Normalized junction vertices: \(junctions.map(\.vertices.count).reduce(0, +))
 
     // Break each junction into N capped line segments.
     let cappedLineSegments = junctions.flatMap { junction in

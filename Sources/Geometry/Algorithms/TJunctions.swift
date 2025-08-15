@@ -47,7 +47,7 @@ public func resolveTJunctions(segments: [LineSegment], absoluteTolerance: CGFloa
     }
 
     if iteration == maxIterations {
-        print("Warning: max T-junction resolution iterations reached.")
+        // Warning: max T-junction resolution iterations reached
     }
 
     return segmentMap

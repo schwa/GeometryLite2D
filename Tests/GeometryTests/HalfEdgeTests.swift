@@ -149,9 +149,6 @@ struct HalfEdgeTests {
         let mesh = HalfEdgeMesh(segments: segments)
         
         // Validate the mesh structure
-        if let error = mesh.validate() {
-            print("Validation error: \(error)")
-        }
         #expect(mesh.validate() == nil, "Mesh should be valid even with dangling edge")
         
         // Check vertex count - should have 4 vertices (A, B, C, D)
@@ -162,12 +159,12 @@ struct HalfEdgeTests {
         
         // The dangling edge creates an open boundary
         // Some half-edges won't have complete face loops
-        let edgesWithoutFaces = mesh.halfEdges.filter { $0.face == nil }
-        print("Edges without faces: \(edgesWithoutFaces.count)")
+        let edgesWithoutFacesCount = mesh.halfEdges.filter { $0.face == nil }.count
+        // Edges without faces: \(edgesWithoutFacesCount)
         
         // Count faces - should still detect the triangle face
-        let facesWithAreas = mesh.faces.filter { $0.signedArea != nil }
-        print("Faces with computed areas: \(facesWithAreas.count)")
+        let facesWithAreasCount = mesh.faces.filter { $0.signedArea != nil }.count
+        // Faces with computed areas: \(facesWithAreasCount)
         
         // At minimum, we should have the triangle face
         #expect(mesh.faces.count >= 1, "Should have at least the triangle face")
