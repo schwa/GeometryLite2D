@@ -155,41 +155,35 @@ extension Shape: InteractiveRepresentable {
         }
     }
     
+    private mutating func delegateHandleChange<T: InteractiveRepresentable>(
+        to shape: inout T,
+        id: AnyHashable,
+        handles: inout [AnyHashable: InteractiveHandle<AnyHashable>],
+        then update: (T) -> Shape
+    ) {
+        guard let typedId = id.base as? T.HandleID else {
+            return
+        }
+        let typedHandles = Dictionary(uniqueKeysWithValues:
+            handles.compactMap { key, value in
+                (key.base as? T.HandleID).map { ($0, InteractiveHandle(id: $0, position: value.position)) }
+            }
+        )
+        var mutableHandles = typedHandles
+        shape.handleDidChange(id: typedId, handles: &mutableHandles)
+        let updatedHandles = Dictionary(uniqueKeysWithValues:
+            mutableHandles.map { (AnyHashable($0.key), InteractiveHandle(id: AnyHashable($0.key), position: $0.value.position)) }
+        )
+        handles.merge(updatedHandles) { _, new in new }        
+        self = update(shape)
+    }
+    
     mutating func handleDidChange(id: AnyHashable, handles: inout [AnyHashable: InteractiveHandle<AnyHashable>]) {
         switch self {
         case .lineSegment(var segment):
-            // Convert back to LineSegment's handle type
-            if let typedId = id.base as? LineSegment.HandleID {
-                var typedHandles = [LineSegment.HandleID: InteractiveHandle<LineSegment.HandleID>]()
-                for (key, value) in handles {
-                    if let typedKey = key.base as? LineSegment.HandleID {
-                        typedHandles[typedKey] = InteractiveHandle(id: typedKey, position: value.position)
-                    }
-                }
-                segment.handleDidChange(id: typedId, handles: &typedHandles)
-                // Update handles with any changes
-                for (key, value) in typedHandles {
-                    handles[AnyHashable(key)] = InteractiveHandle(id: AnyHashable(key), position: value.position)
-                }
-                self = .lineSegment(segment)
-            }
-            
+            delegateHandleChange(to: &segment, id: id, handles: &handles) { .lineSegment($0) }
         case .circle(var circle):
-            // Convert back to Circle's handle type
-            if let typedId = id.base as? Circle_.HandleID {
-                var typedHandles = [Circle_.HandleID: InteractiveHandle<Circle_.HandleID>]()
-                for (key, value) in handles {
-                    if let typedKey = key.base as? Circle_.HandleID {
-                        typedHandles[typedKey] = InteractiveHandle(id: typedKey, position: value.position)
-                    }
-                }
-                circle.handleDidChange(id: typedId, handles: &typedHandles)
-                // Update handles with any changes
-                for (key, value) in typedHandles {
-                    handles[AnyHashable(key)] = InteractiveHandle(id: AnyHashable(key), position: value.position)
-                }
-                self = .circle(circle)
-            }
+            delegateHandleChange(to: &circle, id: id, handles: &handles) { .circle($0) }
         }
     }
 }
