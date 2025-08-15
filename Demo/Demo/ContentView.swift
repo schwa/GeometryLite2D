@@ -123,6 +123,39 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
     }
 }
 
+struct ShapeProxy: InteractiveProxy {
+    let initialShape: Shape
+    
+    func makeDragHandles(shape: Binding<Identified<UUID, Shape>>) -> some View {
+        switch initialShape {
+        case .lineSegment:
+            let segment = Binding<LineSegment>(
+                get: {
+                    guard case .lineSegment(let segment) = shape.wrappedValue.value else {
+                        fatalError("Shape type mismatch")
+                    }
+                    return segment
+                },
+                set: { shape.wrappedValue.value = .lineSegment($0) }
+            )
+            return AnyView(LineSegmentProxy().makeDragHandles(shape: segment))
+            
+        case .circle(let circle):
+            let circleBinding = Binding<Circle_>(
+                get: {
+                    guard case .circle(let circle) = shape.wrappedValue.value else {
+                        fatalError("Shape type mismatch")
+                    }
+                    return circle
+                },
+                set: { shape.wrappedValue.value = .circle($0) }
+            )
+            let edgePoint = CGPoint(x: circle.center.x + circle.radius, y: circle.center.y)
+            return AnyView(CircleProxy(edgePoint: edgePoint).makeDragHandles(shape: circleBinding))
+        }
+    }
+}
+
 struct ContentView: View {
     @State
     var elements: [Identified<UUID, Shape>] = [
@@ -133,13 +166,7 @@ struct ContentView: View {
 
     var body: some View {
         InteractiveCanvas(elements: $elements, id: \.id) { element in
-            switch element.value {
-            case .lineSegment:
-                AnyInteractiveProxy(LineSegmentProxy())
-            case .circle(let circle):
-                AnyInteractiveProxy(CircleProxy(edgePoint: CGPoint(x: circle.center.x + circle.radius, y: circle.center.y)))
-            }
+            AnyInteractiveProxy(ShapeProxy(initialShape: element.value))
         }
-
     }
 }
