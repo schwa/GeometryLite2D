@@ -85,11 +85,6 @@ public extension LineSegment {
         }
     }
 
-    /// Perform intersection as if self and target are convert to infinite lines
-    func infiniteIntesection(_ target: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> CGPoint? {
-        Line(self).intersection(with: Line(target), absoluteTolerance: absoluteTolerance)
-    }
-
     func intersection(_ ray: Ray, absoluteTolerance: CGFloat = 1e-5) -> CGPoint? {
         let p = ray.origin
         let r = ray.direction
