@@ -80,7 +80,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
 
     var id: KeyPath<Element, ElementID>
 
-    var makeProxy: (Element) -> any InteractiveProxy
+    var makeProxy: (Element) -> AnyInteractiveProxy<Element>
 
     @State
     var proxies: [ElementID: AnyInteractiveProxy<Element>] = [:]
@@ -103,9 +103,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
         .onChange(of: ids, initial: true) {
             for element in elements {
                 let id = element[keyPath: id]
-                let proxy = makeProxy(element)
-                let typeErasedProxy = AnyInteractiveProxy<Element>(proxy)
-                proxies[id] = typeErasedProxy
+                proxies[id] = makeProxy(element)
             }
         }
     }
@@ -137,12 +135,11 @@ struct ContentView: View {
         InteractiveCanvas(elements: $elements, id: \.id) { element in
             switch element.value {
             case .lineSegment:
-                LineSegmentProxy()
+                AnyInteractiveProxy(LineSegmentProxy())
             case .circle(let circle):
-                CircleProxy(edgePoint: CGPoint(x: circle.center.x + circle.radius, y: circle.center.y))
+                AnyInteractiveProxy(CircleProxy(edgePoint: CGPoint(x: circle.center.x + circle.radius, y: circle.center.y)))
             }
         }
 
     }
 }
-
