@@ -10,6 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Geometry", targets: ["Geometry"]),
+        .library(name: "Interaction", targets: ["Interaction"]),
         .library(name: "Visualization", targets: ["Visualization"])
     ],
     dependencies: [
@@ -18,20 +19,16 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Visualization",
-            dependencies: []
-        ),
-        .target(
             name: "Geometry",
             dependencies: [
+                "Interaction",
                 "Visualization",
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Numerics", package: "swift-numerics")
             ]
         ),
-        .testTarget(
-            name: "GeometryTests",
-            dependencies: ["Geometry"]
-        )
+        .target(name: "Visualization",dependencies: []),
+        .target(name: "Interaction",dependencies: ["Visualization"]),
+        .testTarget(name: "GeometryTests",dependencies: ["Geometry"])
     ]
 )
