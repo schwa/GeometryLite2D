@@ -2,14 +2,15 @@ import SwiftUI
 import Geometry
 import Visualization
 
-struct InteractiveHandle: Identifiable {
-    var id: String
+struct InteractiveHandle<ID: Hashable>: Identifiable {
+    var id: ID
     var position: CGPoint
 }
 
 protocol InteractiveRepresentable {
-    func makeHandles() -> [InteractiveHandle]
-    mutating func handleDidChange(id: InteractiveHandle.ID, handles: inout [InteractiveHandle.ID: InteractiveHandle])
+    associatedtype HandleID: Hashable
+    func makeHandles() -> [InteractiveHandle<HandleID>]
+    mutating func handleDidChange(id: HandleID, handles: inout [HandleID: InteractiveHandle<HandleID>])
 }
 
 
@@ -20,7 +21,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
     var id: KeyPath<Element, ElementID>
 
     @State
-    var handles: [ElementID: [InteractiveHandle.ID: InteractiveHandle]] = [:]
+    var handles: [ElementID: [Element.HandleID: InteractiveHandle<Element.HandleID>]] = [:]
 
     var elementIDs: [ElementID] {
         elements.map { $0[keyPath: id] }
@@ -82,82 +83,125 @@ struct ContentView: View {
 }
 
 extension LineSegment: InteractiveRepresentable {
-    func makeHandles() -> [InteractiveHandle] {
+    enum HandleID: String, Hashable {
+        case start, end
+    }
+    
+    func makeHandles() -> [InteractiveHandle<HandleID>] {
         return [
-            InteractiveHandle(id: "start", position: start),
-            InteractiveHandle(id: "end", position: end),
+            InteractiveHandle(id: .start, position: start),
+            InteractiveHandle(id: .end, position: end),
         ]
     }
-    mutating func handleDidChange(id: InteractiveHandle.ID, handles: inout [InteractiveHandle.ID: InteractiveHandle]) {
+    
+    mutating func handleDidChange(id: HandleID, handles: inout [HandleID: InteractiveHandle<HandleID>]) {
         guard let handle = handles[id] else { return }
         
         switch id {
-        case "start":
+        case .start:
             start = handle.position
-        case "end":
+        case .end:
             end = handle.position
-        default:
-            fatalError()
         }
     }
 }
 
 extension Circle_: InteractiveRepresentable {
-    func makeHandles() -> [InteractiveHandle] {
+    enum HandleID: String, Hashable {
+        case center, edge
+    }
+    
+    func makeHandles() -> [InteractiveHandle<HandleID>] {
         let edgePoint = CGPoint(x: center.x + radius, y: center.y)
         return [
-            InteractiveHandle(id: "center", position: center),
-            InteractiveHandle(id: "edge", position: edgePoint)
+            InteractiveHandle(id: .center, position: center),
+            InteractiveHandle(id: .edge, position: edgePoint)
         ]
     }
-    mutating func handleDidChange(id: InteractiveHandle.ID, handles: inout [InteractiveHandle.ID: InteractiveHandle]) {
+    
+    mutating func handleDidChange(id: HandleID, handles: inout [HandleID: InteractiveHandle<HandleID>]) {
         guard let handle = handles[id] else { return }
         
         switch id {
-        case "center":
+        case .center:
             let delta = CGVector(dx: handle.position.x - center.x, dy: handle.position.y - center.y)
             center = handle.position
             // Move edge handle to maintain radius
-            if var edgeHandle = handles["edge"] {
+            if var edgeHandle = handles[.edge] {
                 edgeHandle.position.x += delta.dx
                 edgeHandle.position.y += delta.dy
-                handles["edge"] = edgeHandle
+                handles[.edge] = edgeHandle
             }
-        case "edge":
+        case .edge:
             // Calculate radius from center to edge handle position
             radius = hypot(handle.position.x - center.x, handle.position.y - center.y)
-        default:
-            fatalError()
         }
     }
 }
 
 extension Shape: InteractiveRepresentable {
-    func makeHandles() -> [InteractiveHandle] {
+    typealias HandleID = AnyHashable
+    
+    func makeHandles() -> [InteractiveHandle<AnyHashable>] {
         switch self {
         case .lineSegment(let segment):
-            return segment.makeHandles()
+            return segment.makeHandles().map { 
+                InteractiveHandle(id: AnyHashable($0.id), position: $0.position) 
+            }
         case .circle(let circle):
-            return circle.makeHandles()
+            return circle.makeHandles().map { 
+                InteractiveHandle(id: AnyHashable($0.id), position: $0.position) 
+            }
         }
     }
-    mutating func handleDidChange(id: InteractiveHandle.ID, handles: inout [InteractiveHandle.ID: InteractiveHandle]) {
+    
+    mutating func handleDidChange(id: AnyHashable, handles: inout [AnyHashable: InteractiveHandle<AnyHashable>]) {
         switch self {
         case .lineSegment(var segment):
-            segment.handleDidChange(id: id, handles: &handles)
-            self = .lineSegment(segment)
+            // Convert back to LineSegment's handle type
+            if let typedId = id.base as? LineSegment.HandleID {
+                var typedHandles = [LineSegment.HandleID: InteractiveHandle<LineSegment.HandleID>]()
+                for (key, value) in handles {
+                    if let typedKey = key.base as? LineSegment.HandleID {
+                        typedHandles[typedKey] = InteractiveHandle(id: typedKey, position: value.position)
+                    }
+                }
+                segment.handleDidChange(id: typedId, handles: &typedHandles)
+                // Update handles with any changes
+                for (key, value) in typedHandles {
+                    handles[AnyHashable(key)] = InteractiveHandle(id: AnyHashable(key), position: value.position)
+                }
+                self = .lineSegment(segment)
+            }
+            
         case .circle(var circle):
-            circle.handleDidChange(id: id, handles: &handles)
-            self = .circle(circle)
+            // Convert back to Circle's handle type
+            if let typedId = id.base as? Circle_.HandleID {
+                var typedHandles = [Circle_.HandleID: InteractiveHandle<Circle_.HandleID>]()
+                for (key, value) in handles {
+                    if let typedKey = key.base as? Circle_.HandleID {
+                        typedHandles[typedKey] = InteractiveHandle(id: typedKey, position: value.position)
+                    }
+                }
+                circle.handleDidChange(id: typedId, handles: &typedHandles)
+                // Update handles with any changes
+                for (key, value) in typedHandles {
+                    handles[AnyHashable(key)] = InteractiveHandle(id: AnyHashable(key), position: value.position)
+                }
+                self = .circle(circle)
+            }
         }
     }
 }
 
 extension Identified: InteractiveRepresentable where Value: InteractiveRepresentable {
-    func makeHandles() -> [InteractiveHandle] {
+    typealias HandleID = Value.HandleID
+    
+    func makeHandles() -> [InteractiveHandle<Value.HandleID>] {
         value.makeHandles()
     }
-    mutating func handleDidChange(id: InteractiveHandle.ID, handles: inout [InteractiveHandle.ID: InteractiveHandle]) {
+    
+    mutating func handleDidChange(id: Value.HandleID, handles: inout [Value.HandleID: InteractiveHandle<Value.HandleID>]) {
         value.handleDidChange(id: id, handles: &handles)
     }
 }
