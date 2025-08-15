@@ -8,6 +8,7 @@ struct InteractiveHandle {
 
 protocol InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle]
+    mutating func handlesDidChange(_ handles: [InteractiveHandle])
 }
 
 
@@ -75,14 +76,24 @@ extension LineSegment: InteractiveRepresentable {
             InteractiveHandle(position: end),
         ]
     }
+    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
+        guard handles.count == 2 else { return }
+        start = handles[0].position
+        end = handles[1].position
+
+    }
 }
 
 extension Circle_: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         return [
-//            InteractiveHandle(),
+            InteractiveHandle(position: center),
 //            InteractiveHandle()
         ]
+    }
+    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
+        guard handles.count == 1 else { return }
+        center = handles[0].position
     }
 }
 
@@ -95,11 +106,25 @@ extension Shape: InteractiveRepresentable {
             return circle.makeHandles()
         }
     }
+    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
+        switch self {
+        case .lineSegment(var segment):
+            segment.handlesDidChange(handles)
+            self = .lineSegment(segment)
+        case .circle(var circle):
+            circle.handlesDidChange(handles)
+            self = .circle(circle)
+        }
+    }
+
 }
 
 extension Identified: InteractiveRepresentable where Value: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
         value.makeHandles()
+    }
+    mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
+        value.handlesDidChange(handles)
     }
 }
 
