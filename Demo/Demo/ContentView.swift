@@ -40,15 +40,24 @@ extension Shape: VisualizationRepresentable {
     }
 }
 
+// MARK: -
+
 protocol InteractiveProxy {
-    var dragHandles: AnyView { get }
+    associatedtype Element
+    func makeDragHandles(shape: Binding<Element>) -> AnyView
 }
 
 struct LineSegmentProxy: InteractiveProxy {
-    var shape: Binding<LineSegment>
-
-    var dragHandles: AnyView {
-        AnyView(
+    func makeDragHandles(shape: Binding<Identified<UUID, Shape>>) -> AnyView {
+        let shape = Binding<LineSegment> {
+            guard case .lineSegment(let value) = shape.wrappedValue.value else {
+                fatalError("Expected Circle_ type")
+            }
+            return value
+        } set: { newValue in
+            shape.wrappedValue.value = .lineSegment(newValue)
+        }
+        return AnyView(
             Group {
                 DragHandle(position: Binding(
                     get: { shape.wrappedValue.start },
@@ -64,16 +73,20 @@ struct LineSegmentProxy: InteractiveProxy {
 }
 
 struct CircleProxy: InteractiveProxy {
-    var shape: Binding<Circle_>
     var edgePoint: CGPoint
 
-    init(shape: Binding<Circle_>) {
-        self.shape = shape
-        self.edgePoint = shape.wrappedValue.center + CGPoint(x: shape.wrappedValue.radius, y: 0)
-    }
+    func makeDragHandles(shape: Binding<Identified<UUID, Shape>>) -> AnyView {
 
-    var dragHandles: AnyView {
-        AnyView(
+        let shape = Binding<Circle_> {
+            guard case .circle(let value) = shape.wrappedValue.value else {
+                fatalError("Expected Circle_ type")
+            }
+            return value
+        } set: { newValue in
+            shape.wrappedValue.value = .circle(newValue)
+        }
+
+        return AnyView(
             Group {
                 DragHandle(position: Binding(
                     get: { shape.wrappedValue.center },
@@ -97,73 +110,103 @@ struct DragHandle: View {
 
     var body: some View {
         Circle()
-        .fill(Color.blue)
-        .frame(width: 10, height: 10)
-        .position(position)
-        .gesture(
-            DragGesture()
-                .onChanged { value in
-                    position = value.location
-                }
-        )
+            .fill(Color.blue)
+            .frame(width: 10, height: 10)
+            .position(position)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        position = value.location
+                    }
+            )
     }
 }
 
 struct ContentView: View {
     @State
-    var shapes: [Identified<UUID, Shape>] = [
+    var elements: [Identified<UUID, Shape>] = [
         .init(id: .init(), value: .lineSegment(LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 250, y: 100)))),
         .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 150, y: 150), radius: 50))),
         .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 250, y: 150), radius: 50))),
     ]
 
+    var body: some View {
+        InteractiveCanvas(elements: $elements, id: \.id) { element in
+            switch element.value {
+            case .lineSegment:
+                LineSegmentProxy()
+            case .circle(let circle):
+                CircleProxy(edgePoint: CGPoint(x: circle.center.x + circle.radius, y: circle.center.y))
+            }
+        }
+
+    }
+}
+
+struct InteractiveCanvas <Element, ElementID>: View where Element: VisualizationRepresentable, ElementID: Hashable {
+
+    @Binding
+    var elements: [Element]
+
+    var id: KeyPath<Element, ElementID>
+
+    var makeProxy: (Element) -> any InteractiveProxy
+
     @State
-    var proxies: [any InteractiveProxy] = []
+    var proxies: [ElementID: any InteractiveProxy] = [:]
+
+    var ids : [ElementID] {
+        elements.map { $0[keyPath: id] }
+    }
 
     var body: some View {
         ZStack {
             Canvas { context, size in
-                for shape in shapes {
-                    shape.value.visualize(in: context, style: .init(), transform: .identity)
+                for element in elements {
+                    element.visualize(in: context, style: .init(), transform: .identity)
                 }
             }
-            ForEach(Array(proxies.enumerated()), id: \.offset) { offset, proxy in
-                proxy.dragHandles
+            ForEach(elements, id: id) { element in
+                dragHandles(for: element)
             }
         }
-        .onChange(of: shapes, initial: true) {
-            print("SHAPES CHANGED")
-            proxies = shapes.enumerated().map { offset, shape in
-                switch shape.value {
-                    case .lineSegment:
-                    let binding = Binding {
-                        guard case .lineSegment(let value) = shapes[offset].value else {
-                            fatalError()
-                        }
-                        return value
-                    } set: { newValue in
-                        shapes[offset].value = .lineSegment(newValue)
-                    }
-                    return LineSegmentProxy(shape: binding)
-                case .circle:
-                    let binding = Binding {
-                        guard case .circle(let value) = shapes[offset].value else {
-                            fatalError()
-                        }
-                        return value
-                    } set: { newValue in
-                        shapes[offset].value = .circle(newValue)
-                    }
-                    return CircleProxy(shape: binding)
-                }
+        .onChange(of: ids, initial: true) {
+            for element in elements {
+                let id = element[keyPath: id]
+                let proxy = makeProxy(element)
+                proxies[id] = proxy
             }
         }
     }
 
+    func dragHandles(for element: Element) -> some View {
+        let id = element[keyPath: id]
+        if let proxy = proxies[id] {
+            if let index = elements.firstIndex(where: { $0[keyPath: self.id] == id }) {
+                let binding = Binding<Element>(
+                    get: { elements[index] },
+                    set: { elements[index] = $0 }
+                )
+                // TODO: need to go from Identified<..., Shape> to Shape
+                proxy.makeDragHandles(shape: binding)
+            }
+        }
+        return EmptyView()
+    }
 }
 
 extension Identified: @retroactive Equatable where Value: Equatable {
     public static func == (lhs: Identified, rhs: Identified) -> Bool {
         lhs.id == rhs.id && lhs.value == rhs.value
+    }
+}
+
+extension Identified: @retroactive VisualizationRepresentable where Value: VisualizationRepresentable {
+    public var boundingRect: CGRect {
+        return value.boundingRect
+    }
+
+    public func visualize(in context: GraphicsContext, style: Visualization.VisualizationStyle, transform: CGAffineTransform) {
+        value.visualize(in: context, style: style, transform: transform)
     }
 }
