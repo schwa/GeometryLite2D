@@ -34,6 +34,16 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
                     let binding = Binding<CGPoint>(
                         get: { handle.position },
                         set: { newPosition in
+                            if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
+                                // Update handle position in state
+                                self.handles[elementID]?[handleID]?.position = newPosition
+                                
+                                // Get the updated handle
+                                if let updatedHandle = self.handles[elementID]?[handleID] {
+                                    // Tell element this handle changed
+                                    elements[elementIndex].handleDidChange(updatedHandle)
+                                }
+                            }
                         }
                     )
                     DragHandle(position: binding)
