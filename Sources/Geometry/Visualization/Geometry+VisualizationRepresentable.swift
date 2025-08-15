@@ -32,26 +32,6 @@ extension Circle: VisualizationRepresentable {
 }
 
 extension Line: VisualizationRepresentable {
-    public var boundingRect: CGRect {
-        // For visualization, we'll show a line segment extending a reasonable distance in both directions
-        let distance: CGFloat = 100
-        let point1 = point - direction.normalized * distance
-        let point2 = point + direction.normalized * distance
-        return CGRect.boundingRect(of: [point1, point2])
-    }
-    
-    public func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
-        // Visualize line as a long segment
-        let distance: CGFloat = 100
-        let point1 = point - direction.normalized * distance
-        let point2 = point + direction.normalized * distance
-        let segment = LineSegment(start: point1, end: point2)
-        
-        let path = Path(representable: segment).applying(transform)
-        if let strokeShading = style.stroke {
-            context.stroke(path, with: strokeShading, style: style.strokeStyle ?? .init())
-        }
-    }
 }
 
 // MARK: - Helper Extensions

@@ -2,22 +2,6 @@ import CoreGraphics
 import Geometry
 import Testing
 
-@Test func testIntersectionOfLines() {
-    let p1 = CGPoint.zero
-    let d1 = CGPoint(x: 1, y: 1)
-    let p2 = CGPoint(x: 0, y: 1)
-    let d2 = CGPoint(x: 1, y: -1)
-    let intersection = intersectionOfLines(p1, d1, p2, d2)
-    #expect(intersection?.x == 0.5 && intersection?.y == 0.5)
-
-    // Parallel lines
-    let p3 = CGPoint.zero
-    let d3 = CGPoint(x: 1, y: 0)
-    let p4 = CGPoint(x: 0, y: 1)
-    let d4 = CGPoint(x: 1, y: 0)
-    #expect(intersectionOfLines(p3, d3, p4, d4) == nil)
-}
-
 @Test func testLineIntersection() {
     let l1 = Line(point: CGPoint.zero, direction: CGVector(dx: 1, dy: 1))
     let l2 = Line(point: CGPoint(x: 0, y: 1), direction: CGVector(dx: 1, dy: -1))

@@ -11,7 +11,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Circle")
     func testPathFromCircle() {
         let circle = Circle(center: CGPoint(x: 5, y: 5), radius: 3)
-        let path = Path(circle)
+        let path = Path(representable: circle)
         
         // Path should not be empty
         #expect(!path.isEmpty)
@@ -27,7 +27,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Circle at origin")
     func testPathFromCircleAtOrigin() {
         let circle = Circle(center: .zero, radius: 1)
-        let path = Path(circle)
+        let path = Path(representable: circle)
         
         #expect(!path.isEmpty)
     }
@@ -35,7 +35,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Circle with zero radius")
     func testPathFromCircleWithZeroRadius() {
         let circle = Circle(center: CGPoint(x: 2, y: 3), radius: 0)
-        let path = Path(circle)
+        let path = Path(representable: circle)
         
         // Even with zero radius, path should be created (just a point)
         #expect(!path.isEmpty)
@@ -46,7 +46,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Line")
     func testPathFromLine() {
         let line = Line(point: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 1))
-        let path = Path(line)
+        let path = Path(representable: line)
         
         #expect(!path.isEmpty)
         
@@ -57,7 +57,7 @@ struct PathGeometrySupportTests {
     @Test("Path from vertical Line")
     func testPathFromVerticalLine() {
         let line = Line(point: CGPoint(x: 5, y: 10), direction: CGVector(dx: 0, dy: 1))
-        let path = Path(line)
+        let path = Path(representable: line)
         
         #expect(!path.isEmpty)
     }
@@ -65,7 +65,7 @@ struct PathGeometrySupportTests {
     @Test("Path from horizontal Line")
     func testPathFromHorizontalLine() {
         let line = Line(point: CGPoint(x: 10, y: 5), direction: CGVector(dx: 1, dy: 0))
-        let path = Path(line)
+        let path = Path(representable: line)
         
         #expect(!path.isEmpty)
     }
@@ -75,7 +75,7 @@ struct PathGeometrySupportTests {
     @Test("Path from LineSegment")
     func testPathFromLineSegment() {
         let segment = LineSegment(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 10, y: 10))
-        let path = Path(segment)
+        let path = Path(representable: segment)
         
         #expect(!path.isEmpty)
     }
@@ -83,7 +83,7 @@ struct PathGeometrySupportTests {
     @Test("Path from zero-length LineSegment")
     func testPathFromZeroLengthLineSegment() {
         let segment = LineSegment(start: CGPoint(x: 5, y: 5), end: CGPoint(x: 5, y: 5))
-        let path = Path(segment)
+        let path = Path(representable: segment)
         
         #expect(!path.isEmpty)
     }
@@ -128,7 +128,7 @@ struct PathGeometrySupportTests {
             CGPoint(x: 2.5, y: 5)
         ])
         
-        let path = Path(polygon)
+        let path = Path(representable: polygon)
         
         #expect(!path.isEmpty)
     }
@@ -142,7 +142,7 @@ struct PathGeometrySupportTests {
             CGPoint(x: 0, y: 10)
         ])
         
-        let path = Path(polygon)
+        let path = Path(representable: polygon)
         
         #expect(!path.isEmpty)
     }
@@ -155,7 +155,7 @@ struct PathGeometrySupportTests {
             CGPoint(x: 1, y: 0), 
             CGPoint(x: 0, y: 1)
         ])
-        let path = Path(polygon)
+        let path = Path(representable: polygon)
         
         #expect(!path.isEmpty)
     }
@@ -168,7 +168,7 @@ struct PathGeometrySupportTests {
             CGPoint(x: 5, y: 5)
         ])
         
-        let path = Path(polygon)
+        let path = Path(representable: polygon)
         
         #expect(!path.isEmpty)
     }
@@ -178,7 +178,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Ray")
     func testPathFromRay() {
         let ray = Ray(origin: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 1))
-        let path = Path(ray)
+        let path = Path(representable: ray)
         
         #expect(!path.isEmpty)
     }
@@ -186,7 +186,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Ray with horizontal direction")
     func testPathFromRayHorizontal() {
         let ray = Ray(origin: CGPoint(x: 5, y: 5), direction: CGVector(dx: 1, dy: 0))
-        let path = Path(ray)
+        let path = Path(representable: ray)
         
         #expect(!path.isEmpty)
     }
@@ -194,7 +194,7 @@ struct PathGeometrySupportTests {
     @Test("Path from Ray with vertical direction")
     func testPathFromRayVertical() {
         let ray = Ray(origin: CGPoint(x: 5, y: 5), direction: CGVector(dx: 0, dy: 1))
-        let path = Path(ray)
+        let path = Path(representable: ray)
         
         #expect(!path.isEmpty)
     }

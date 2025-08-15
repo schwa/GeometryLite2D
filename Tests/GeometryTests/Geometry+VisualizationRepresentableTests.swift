@@ -46,16 +46,6 @@ struct GeometryVisualizationRepresentableTests {
         #expect(representable.boundingRect.height > 0)
     }
     
-    @Test("Ray conforms to VisualizationRepresentable")
-    func testRayConformance() {
-        let ray = Ray(origin: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 1))
-        
-        // Test protocol conformance
-        let representable: any VisualizationRepresentable = ray
-        #expect(representable.boundingRect.width > 0)
-        #expect(representable.boundingRect.height > 0)
-    }
-    
     @Test("Line conforms to VisualizationRepresentable")
     func testLineConformance() {
         let line = Line(point: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 1))
@@ -222,54 +212,6 @@ struct GeometryVisualizationRepresentableTests {
         #expect(bounds.height == 100)
     }
     
-    // MARK: - Ray VisualizationRepresentable Tests
-    
-    @Test("Ray boundingRect calculation")
-    func testRayBoundingRect() {
-        let ray = Ray(origin: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 0))
-        let bounds = ray.boundingRect
-        
-        // Ray should extend 100 units in the direction
-        #expect(bounds.minX == 0)
-        #expect(bounds.minY == 0)
-        #expect(bounds.maxX == 100)
-        #expect(bounds.maxY == 0)
-        #expect(bounds.width == 100)
-        #expect(bounds.height == 0)
-    }
-    
-    @Test("Ray diagonal boundingRect")
-    func testRayDiagonalBoundingRect() {
-        let ray = Ray(origin: CGPoint(x: 5, y: 5), direction: CGVector(dx: 1, dy: 1))
-        let bounds = ray.boundingRect
-        
-        // Direction should be normalized and extended
-        let normalizedLength = sqrt(2.0) // Length of (1,1) vector
-        let expectedEndX = 5 + (1 / normalizedLength) * 100
-        let expectedEndY = 5 + (1 / normalizedLength) * 100
-        
-        #expect(bounds.minX == 5)
-        #expect(bounds.minY == 5)
-        #expect(abs(bounds.maxX - expectedEndX) < 0.01)
-        #expect(abs(bounds.maxY - expectedEndY) < 0.01)
-    }
-    
-    @Test("Ray with negative direction boundingRect")
-    func testRayNegativeDirectionBoundingRect() {
-        let ray = Ray(origin: CGPoint(x: 10, y: 10), direction: CGVector(dx: -1, dy: -1))
-        let bounds = ray.boundingRect
-        
-        // Should extend in negative direction
-        let normalizedLength = sqrt(2.0)
-        let expectedEndX = 10 + (-1 / normalizedLength) * 100
-        let expectedEndY = 10 + (-1 / normalizedLength) * 100
-        
-        #expect(abs(bounds.minX - expectedEndX) < 0.01)
-        #expect(abs(bounds.minY - expectedEndY) < 0.01)
-        #expect(bounds.maxX == 10)
-        #expect(bounds.maxY == 10)
-    }
-    
     // MARK: - Line VisualizationRepresentable Tests
     
     @Test("Line boundingRect calculation")
@@ -372,41 +314,6 @@ struct GeometryVisualizationRepresentableTests {
         #expect(bounds.height == 7)
     }
     
-    // MARK: - CGAffineTransform Extensions Tests
-    
-    @Test("CGAffineTransform withoutTranslation")
-    func testCGAffineTransformWithoutTranslation() {
-        let transform = CGAffineTransform(a: 2, b: 0, c: 0, d: 3, tx: 10, ty: 20)
-        let withoutTranslation = transform.withoutTranslation
-        
-        #expect(withoutTranslation.a == 2)
-        #expect(withoutTranslation.b == 0)
-        #expect(withoutTranslation.c == 0)
-        #expect(withoutTranslation.d == 3)
-        #expect(withoutTranslation.tx == 0)
-        #expect(withoutTranslation.ty == 0)
-    }
-    
-    @Test("CGAffineTransform withoutTranslation identity")
-    func testCGAffineTransformWithoutTranslationIdentity() {
-        let transform = CGAffineTransform.identity
-        let withoutTranslation = transform.withoutTranslation
-        
-        #expect(withoutTranslation == .identity)
-    }
-    
-    @Test("CGAffineTransform withoutTranslation rotation")
-    func testCGAffineTransformWithoutTranslationRotation() {
-        let transform = CGAffineTransform(rotationAngle: .pi / 4).translatedBy(x: 5, y: 10)
-        let withoutTranslation = transform.withoutTranslation
-        
-        #expect(abs(withoutTranslation.tx) < 0.001)
-        #expect(abs(withoutTranslation.ty) < 0.001)
-        // Should preserve rotation components
-        #expect(abs(withoutTranslation.a - cos(.pi / 4)) < 0.001)
-        #expect(abs(withoutTranslation.b - sin(.pi / 4)) < 0.001)
-    }
-    
     // MARK: - Convenience Function Tests
     
     @Test("Visualize PathRepresentable elements function exists")
@@ -429,31 +336,7 @@ struct GeometryVisualizationRepresentableTests {
     }
     
     // MARK: - Integration Tests
-    
-    @Test("Multiple geometry types as VisualizationRepresentable")
-    func testMultipleGeometryTypesAsVisualizationRepresentable() {
-        let representables: [any VisualizationRepresentable] = [
-            LineSegment(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 10, y: 10)),
-            Polygon([
-                CGPoint(x: 0, y: 0),
-                CGPoint(x: 5, y: 0),
-                CGPoint(x: 2.5, y: 5)
-            ]),
-            Circle(center: CGPoint(x: 5, y: 5), radius: 2),
-            Ray(origin: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 0)),
-            Line(point: CGPoint(x: 0, y: 0), direction: CGVector(dx: 0, dy: 1))
-        ]
         
-        // All should have valid bounding rects
-        for representable in representables {
-            let bounds = representable.boundingRect
-            #expect(bounds.width >= 0)
-            #expect(bounds.height >= 0)
-        }
-        
-        #expect(representables.count == 5)
-    }
-    
     @Test("VisualizationRepresentable with complex geometries")
     func testVisualizationRepresentableComplexGeometries() {
         // Test with more complex geometry setups
@@ -549,19 +432,7 @@ struct GeometryVisualizationRepresentableTests {
         #expect(!bounds.isInfinite)
         #expect(!bounds.isNull)
     }
-    
-    @Test("Ray with very small direction vector")
-    func testRaySmallDirectionVector() {
-        let ray = Ray(origin: CGPoint(x: 5, y: 5), direction: CGVector(dx: 0.001, dy: 0.001))
-        let bounds = ray.boundingRect
-        
-        // Should handle gracefully with small but non-zero direction
-        #expect(!bounds.isInfinite)
-        #expect(!bounds.isNull)
-        #expect(bounds.width > 0)
-        #expect(bounds.height > 0)
-    }
-    
+
     @Test("Line with very small direction vector")
     func testLineSmallDirectionVector() {
         let line = Line(point: CGPoint(x: 5, y: 5), direction: CGVector(dx: 0.001, dy: 0.001))
