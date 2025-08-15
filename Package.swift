@@ -18,16 +18,15 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Geometry",
-            dependencies: [
-                .product(name: "Collections", package: "swift-collections"),
-                .product(name: "Numerics", package: "swift-numerics")
-            ]
+            name: "Visualization",
+            dependencies: []
         ),
         .target(
-            name: "Visualization",
+            name: "Geometry",
             dependencies: [
-                "Geometry"
+                "Visualization",
+                .product(name: "Collections", package: "swift-collections"),
+                .product(name: "Numerics", package: "swift-numerics")
             ]
         ),
         .testTarget(

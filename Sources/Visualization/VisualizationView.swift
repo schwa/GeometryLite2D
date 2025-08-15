@@ -1,89 +1,15 @@
-import Geometry
 import SwiftUI
 
-// Resolve ambiguity with QuickDraw's Polygon type
-typealias Polygon = Geometry.Polygon
-
-protocol VisualizationRepresentable {
-    var boundingRect: CGRect { get }
-    func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform)
-}
-
-public struct VisualizationStyle {
-    public var stroke: GraphicsContext.Shading?
-    public var strokeStyle: StrokeStyle?
-    public var fill: GraphicsContext.Shading?
-    public var fillStyle: FillStyle?
-
-    public init(stroke: GraphicsContext.Shading? = nil, strokeStyle: StrokeStyle? = nil, fill: GraphicsContext.Shading? = nil, fillStyle: FillStyle? = nil) {
-        self.stroke = stroke
-        self.strokeStyle = strokeStyle
-        self.fill = fill
-        self.fillStyle = fillStyle
-    }
-}
-
-public extension VisualizationStyle {
-    init() {
-        self.stroke = .color(.black)
-        self.strokeStyle = .init(lineWidth: 1)
-        self.fill = .color(.clear)
-        self.fillStyle = nil
-    }
-
-    init(stroke: GraphicsContext.Shading? = nil, lineWidth: Double, fill: GraphicsContext.Shading? = nil, fillStyle: FillStyle? = nil) {
-        self.stroke = stroke
-        self.strokeStyle = .init(lineWidth: lineWidth)
-        self.fill = fill
-        self.fillStyle = fillStyle
-    }
-}
-
-extension VisualizationRepresentable where Self: PathRepresentable {
-    var boundingRect: CGRect {
-        Path(representable: self).boundingRect
-    }
-
-    func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
-        let path = Path(representable: self).applying(transform)
-        if let fillShading = style.fill {
-            context.fill(path, with: fillShading, style: style.fillStyle ?? .init())
-        }
-
-        if let strokeShading = style.stroke {
-            context.stroke(path, with: strokeShading, style: style.strokeStyle ?? .init())
-        }
-    }
-}
-
-extension Path: VisualizationRepresentable {
-    public func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
-        let path = self.applying(transform)
-
-        // Fill first (so stroke appears on top)
-        if let fillShading = style.fill {
-            context.fill(path, with: fillShading, style: style.fillStyle ?? .init())
-        }
-
-        // Then stroke
-        if let strokeShading = style.stroke {
-            context.stroke(path, with: strokeShading, style: style.strokeStyle ?? .init())
-        }
-    }
-}
-
-// MARK: -
-
-struct VisualizationView: View {
+public struct VisualizationView: View {
     let elements: [([any VisualizationRepresentable], VisualizationStyle)]
     let scaleToFit: Bool
 
-    init(elements: [([any VisualizationRepresentable], VisualizationStyle)], scaleToFit: Bool = false) {
+    public init(elements: [([any VisualizationRepresentable], VisualizationStyle)], scaleToFit: Bool = false) {
         self.elements = elements
         self.scaleToFit = scaleToFit
     }
 
-    var body: some View {
+    public var body: some View {
         let info = layoutInfo
 
         Canvas { context, size in
@@ -184,7 +110,7 @@ struct VisualizationView: View {
     }
 }
 
-extension VisualizationView {
+public extension VisualizationView {
     init(paths: [Path], scaleToFit: Bool = false) {
         let colors: [Color] = [.blue, .red, .green, .orange, .purple, .pink]
         var elements: [([any VisualizationRepresentable], VisualizationStyle)] = []
@@ -204,7 +130,7 @@ extension VisualizationView {
 
 @MainActor
 @discardableResult
-func visualize(_ elements: [([any VisualizationRepresentable], VisualizationStyle)], scaleToFit: Bool = false) -> CGImage {
+public func visualize(_ elements: [([any VisualizationRepresentable], VisualizationStyle)], scaleToFit: Bool = false) -> CGImage {
     let view = VisualizationView(elements: elements, scaleToFit: scaleToFit)
     let renderer = ImageRenderer(content: view)
     #if os(macOS)
@@ -215,7 +141,7 @@ func visualize(_ elements: [([any VisualizationRepresentable], VisualizationStyl
 
 @MainActor
 @discardableResult
-func visualize(paths: [Path], scaleToFit: Bool = false) -> CGImage {
+public func visualize(paths: [Path], scaleToFit: Bool = false) -> CGImage {
     let view = VisualizationView(paths: paths, scaleToFit: scaleToFit)
     let renderer = ImageRenderer(content: view)
     #if os(macOS)
@@ -224,60 +150,14 @@ func visualize(paths: [Path], scaleToFit: Bool = false) -> CGImage {
     return renderer.cgImage!
 }
 
-@MainActor
-@discardableResult
-func visualize(_ elements: [any PathRepresentable], scaleToFit: Bool = false) -> CGImage {
-    let paths = elements.map { element in
-        Path(representable: element)
-    }
-    let view = VisualizationView(paths: paths, scaleToFit: scaleToFit)
-    let renderer = ImageRenderer(content: view)
-    #if os(macOS)
-    renderer.scale = NSScreen.main?.backingScaleFactor ?? 1.0
-    #endif
-    return renderer.cgImage!
-}
-
-import Playgrounds
-
-#Playground {
-    visualize([
-        LineSegment(CGPoint.zero, CGPoint(x: 100, y: 100))
-    ])
-    visualize(paths: [
-        Path(CGRect(x: 0, y: 0, width: 100, height: 100)),
-        Path(ellipseIn: CGRect(x: 50, y: 50, width: 100, height: 100)),
-        Path(ellipseIn: CGRect(x: 250, y: 250, width: 100, height: 100))
-    ])
-
-    visualize(paths: [
-        Path(CGRect(x: 0, y: 0, width: 100, height: 100)),
-        Path(ellipseIn: CGRect(x: -250, y: 250, width: 100, height: 100))
-    ])
-
-    visualize([CGRect(x: 0, y: 0, width: 100, height: 100)])
-}
-
-// TODO: TIDY UP BELOW HERE.
-
-extension LineSegment: VisualizationRepresentable {
-}
-
-extension Polygon: VisualizationRepresentable {
-}
-
-extension CGRect {
-    init(center: CGPoint, size: CGSize) {
-        self.init(origin: CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2), size: size)
-    }
-}
+// MARK: - Core Types Extensions
 
 extension CGPoint: VisualizationRepresentable {
-    var boundingRect: CGRect {
+    public var boundingRect: CGRect {
         CGRect(center: self, size: CGSize(width: 4, height: 4))
     }
 
-    func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
+    public func visualize(in context: GraphicsContext, style: VisualizationStyle, transform: CGAffineTransform) {
         let point = self.applying(transform)
 
         let path = Path { path in
@@ -290,10 +170,8 @@ extension CGPoint: VisualizationRepresentable {
     }
 }
 
-extension CGAffineTransform {
-    var withoutScale: CGAffineTransform {
-        var components = self.decomposed()
-        components.scale = CGSize(width: 1, height: 1)
-        return .init(components)
+extension CGRect {
+    public init(center: CGPoint, size: CGSize) {
+        self.init(origin: CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2), size: size)
     }
 }
