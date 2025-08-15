@@ -5,6 +5,7 @@ public protocol InteractiveProxyRepresentable {
     associatedtype Proxy: InteractiveProxy
 
     func makeInteractiveProxy() -> Proxy
+    func updateFromProxy(_ proxy: Proxy) -> Self
 }
 
 public struct Handle {
@@ -37,19 +38,27 @@ public protocol InteractiveProxy {
 
 public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hashable {
 
-    var elements: [Element]
+    @Binding var elements: [Element]
 
     @State
     var proxies: [any InteractiveProxy] = []
 
     let id: (Element) -> ElementID
+    
+    let makeProxy: (Element) -> any InteractiveProxy
+    
+    let updateElement: (Element, any InteractiveProxy) -> Element
 
-    let proxy: (Element) -> (any InteractiveProxy)
-
-    public init(elements: [Element], id: @escaping (Element) -> (ElementID), proxy: @escaping (Element) -> (any InteractiveProxy)) {
-        self.elements = elements
+    public init(
+        elements: Binding<[Element]>, 
+        id: @escaping (Element) -> ElementID,
+        makeProxy: @escaping (Element) -> any InteractiveProxy,
+        updateElement: @escaping (Element, any InteractiveProxy) -> Element
+    ) {
+        self._elements = elements
         self.id = id
-        self.proxy = proxy
+        self.makeProxy = makeProxy
+        self.updateElement = updateElement
     }
 
     public var body: some View {
@@ -72,6 +81,9 @@ public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hash
                             var tmp = proxy
                             handle.setter(&tmp, location)
                             self.proxies[offset] = tmp
+                            
+                            // Update the original element from the proxy
+                            self.elements[offset] = self.updateElement(self.elements[offset], tmp)
                         }))
 
                 }
@@ -80,7 +92,7 @@ public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hash
         .onChange(of: ids, initial: true) { oldValue, newValue in
             // TODO: DO DIFF
             print("CHANGED")
-            proxies = elements.map(proxy)
+            proxies = elements.map(makeProxy)
         }
     }
 }

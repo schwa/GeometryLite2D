@@ -39,6 +39,11 @@ extension Circle_: @retroactive InteractiveProxyRepresentable {
     public func makeInteractiveProxy() -> Proxy {
         return Proxy(center: center, edgePoint: center + [0, radius])
     }
+    
+    public func updateFromProxy(_ proxy: Proxy) -> Circle_ {
+        let newRadius = proxy.edgePoint.distance(to: proxy.center)
+        return Circle_(center: proxy.center, radius: newRadius)
+    }
 }
 
 extension LineSegment: @retroactive InteractiveProxyRepresentable {
@@ -75,6 +80,10 @@ extension LineSegment: @retroactive InteractiveProxyRepresentable {
     public func makeInteractiveProxy() -> Proxy {
         return Proxy(start: start, end: end)
     }
+    
+    public func updateFromProxy(_ proxy: Proxy) -> LineSegment {
+        return LineSegment(start: proxy.start, end: proxy.end)
+    }
 }
 
 struct ContentView: View {
@@ -90,9 +99,27 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            InteractiveCanvas(elements: Array(shapes.enumerated()), id: \.offset) { (offset, element) in
-                element.makeInteractiveProxy()
-            }
+            InteractiveCanvas(
+                elements: Binding(
+                    get: { Array(shapes.enumerated()) },
+                    set: { newValue in 
+                        shapes = newValue.map { $0.1 }
+                    }
+                ),
+                id: \.0,  // Use the index as ID
+                makeProxy: { (_, element) in
+                    element.makeInteractiveProxy()
+                },
+                updateElement: { element, proxy in
+                    let (index, element) = element
+                    if let circle = element as? Circle_, let circleProxy = proxy as? Circle_.Proxy {
+                        return (index, circle.updateFromProxy(circleProxy) as any InteractiveProxyRepresentable)
+                    } else if let segment = element as? LineSegment, let segmentProxy = proxy as? LineSegment.Proxy {
+                        return (index, segment.updateFromProxy(segmentProxy) as any InteractiveProxyRepresentable)
+                    }
+                    return (index, element)
+                }
+            )
         }
     }
 }
