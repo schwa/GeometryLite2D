@@ -54,6 +54,30 @@ extension Shape: Equatable {
     }
 }
 
+extension Shape {
+    var lineSegment: LineSegment? {
+        get {
+            guard case .lineSegment(let segment) = self else { return nil }
+            return segment
+        }
+        set {
+            guard let newValue = newValue else { return }
+            self = .lineSegment(newValue)
+        }
+    }
+    
+    var circle: Circle_? {
+        get {
+            guard case .circle(let circle) = self else { return nil }
+            return circle
+        }
+        set {
+            guard let newValue = newValue else { return }
+            self = .circle(newValue)
+        }
+    }
+}
+
 extension Shape: VisualizationRepresentable {
     var boundingRect: CGRect {
         switch self {
