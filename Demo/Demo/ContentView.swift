@@ -124,10 +124,8 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
 }
 
 struct ShapeProxy: InteractiveProxy {
-    let initialShape: Shape
-    
     func makeDragHandles(shape: Binding<Identified<UUID, Shape>>) -> some View {
-        switch initialShape {
+        switch shape.wrappedValue.value {
         case .lineSegment:
             let segment = Binding<LineSegment>(
                 get: {
@@ -166,7 +164,7 @@ struct ContentView: View {
 
     var body: some View {
         InteractiveCanvas(elements: $elements, id: \.id) { element in
-            AnyInteractiveProxy(ShapeProxy(initialShape: element.value))
+            AnyInteractiveProxy(ShapeProxy())
         }
     }
 }
