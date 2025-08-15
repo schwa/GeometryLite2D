@@ -10,6 +10,20 @@ protocol InteractiveProxy {
     func makeDragHandles(shape: Binding<Element>) -> Content
 }
 
+struct AnyInteractiveProxy<Element> {
+         private let _makeDragHandles: (Binding<Element>) -> AnyView
+
+         init<P: InteractiveProxy>(_ proxy: P) where P.Element == Element {
+             self._makeDragHandles = { binding in
+                 AnyView(proxy.makeDragHandles(shape: binding))
+             }
+         }
+
+         func makeDragHandles(shape: Binding<Element>) -> AnyView {
+             _makeDragHandles(shape)
+         }
+     }
+
 struct LineSegmentProxy: InteractiveProxy {
     func makeDragHandles(shape: Binding<LineSegment>) -> some View {
         DragHandle(position: Binding(
@@ -69,7 +83,7 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
     var makeProxy: (Element) -> any InteractiveProxy
 
     @State
-    var proxies: [ElementID: any InteractiveProxy] = [:]
+    var proxies: [ElementID: AnyInteractiveProxy<Element>] = [:]
 
     var ids : [ElementID] {
         elements.map { $0[keyPath: id] }
@@ -90,14 +104,15 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
             for element in elements {
                 let id = element[keyPath: id]
                 let proxy = makeProxy(element)
-                proxies[id] = proxy
+                proxies[id] = AnyInteractiveProxy(proxy)
             }
         }
     }
 
+    @ViewBuilder
     func dragHandles(for element: Element) -> some View {
         let id = element[keyPath: id]
-        if let proxy: any InteractiveProxy = proxies[id] {
+        if let proxy = proxies[id] {
             if let index = elements.firstIndex(where: { $0[keyPath: self.id] == id }) {
                 let binding = Binding<Element>(
                     get: { elements[index] },
@@ -106,7 +121,6 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: Visualization
                 proxy.makeDragHandles(shape: binding)
             }
         }
-        return EmptyView()
     }
 }
 
