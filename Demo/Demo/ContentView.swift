@@ -71,8 +71,8 @@ struct ContentView: View {
     @State
     var elements: [Identified<UUID, Shape>] = [
         .init(id: .init(), value: .lineSegment(LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 250, y: 100)))),
-//        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 150, y: 150), radius: 50))),
-//        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 250, y: 150), radius: 50))),
+        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 150, y: 150), radius: 50))),
+        .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 250, y: 150), radius: 50))),
     ]
 
     var body: some View {
@@ -100,14 +100,21 @@ extension LineSegment: InteractiveRepresentable {
 
 extension Circle_: InteractiveRepresentable {
     func makeHandles() -> [InteractiveHandle] {
+        let edgePoint = CGPoint(x: center.x + radius, y: center.y)
         return [
             InteractiveHandle(position: center),
-//            InteractiveHandle()
+            InteractiveHandle(position: edgePoint)
         ]
     }
     mutating func handlesDidChange(_ handles: [InteractiveHandle]) {
-        guard handles.count == 1 else { return }
+        guard handles.count == 2 else { return }
         center = handles[0].position
+        
+        // Calculate radius from edge handle position
+        let edge = handles[1].position
+        let dx = edge.x - center.x
+        let dy = edge.y - center.y
+        radius = sqrt(dx * dx + dy * dy)
     }
 }
 
