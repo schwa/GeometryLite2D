@@ -33,7 +33,21 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
                     let binding = Binding<CGPoint>(
                         get: { handle.position },
                         set: { newPosition in
-                            // TODO: ...
+                            if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
+                                      // Update handle position
+                                      self.handles[elementID]?[handleID]?.position = newPosition
+
+                                      // Get all handles for this element in order
+                                      if let elementHandles = self.handles[elementID] {
+                                          // Sort by UUID to maintain consistent ordering
+                                          let sortedHandles = elementHandles
+                                              .sorted(by: { $0.key.uuidString < $1.key.uuidString })
+                                              .map { $0.value }
+
+                                          // Update element with new handle positions
+                                          elements[elementIndex].handlesDidChange(sortedHandles)
+                                      }
+                                  }
                         }
                     )
                     DragHandle(position: binding)
