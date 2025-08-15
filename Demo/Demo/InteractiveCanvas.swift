@@ -6,20 +6,25 @@ protocol InteractiveProxy {
     associatedtype Content: View
 
     @ViewBuilder
-    func makeDragHandles(shape: Binding<Element>) -> Content
+    func makeDragHandles(shape: Binding<Element>, proxy: Binding<Self>) -> Content
 }
 
-struct AnyInteractiveProxy<Element> {
-    private let _makeDragHandles: (Binding<Element>) -> AnyView
-
+class AnyInteractiveProxy<Element> {
+    private var _makeDragHandles: (Binding<Element>, AnyInteractiveProxy<Element>) -> AnyView
+    
     init<P: InteractiveProxy>(_ proxy: P) where P.Element == Element {
-        self._makeDragHandles = { binding in
-            AnyView(proxy.makeDragHandles(shape: binding))
+        var storedProxy = proxy
+        self._makeDragHandles = { binding, anyProxy in
+            let proxyBinding = Binding<P>(
+                get: { storedProxy },
+                set: { storedProxy = $0 }
+            )
+            return AnyView(storedProxy.makeDragHandles(shape: binding, proxy: proxyBinding))
         }
     }
-
+    
     func makeDragHandles(shape: Binding<Element>) -> AnyView {
-        _makeDragHandles(shape)
+        _makeDragHandles(shape, self)
     }
 }
 

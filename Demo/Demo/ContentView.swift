@@ -3,7 +3,20 @@ import Geometry
 import Visualization
 
 struct ShapeProxy: InteractiveProxy {
-    func makeDragHandles(shape: Binding<Identified<UUID, Shape>>) -> some View {
+    var lineSegmentProxy = LineSegmentProxy()
+    var circleProxy: CircleProxy
+    
+    init(for shape: Shape) {
+        switch shape {
+        case .lineSegment:
+            self.circleProxy = CircleProxy(edgePoint: .zero) // Placeholder
+        case .circle(let circle):
+            let edgePoint = CGPoint(x: circle.center.x + circle.radius, y: circle.center.y)
+            self.circleProxy = CircleProxy(edgePoint: edgePoint)
+        }
+    }
+    
+    func makeDragHandles(shape: Binding<Identified<UUID, Shape>>, proxy: Binding<Self>) -> some View {
         switch shape.wrappedValue.value {
         case .lineSegment:
             let segment = Binding<LineSegment>(
@@ -15,9 +28,13 @@ struct ShapeProxy: InteractiveProxy {
                 },
                 set: { shape.wrappedValue.value = .lineSegment($0) }
             )
-            return AnyView(LineSegmentProxy().makeDragHandles(shape: segment))
+            let lineProxy = Binding<LineSegmentProxy>(
+                get: { proxy.wrappedValue.lineSegmentProxy },
+                set: { proxy.wrappedValue.lineSegmentProxy = $0 }
+            )
+            return AnyView(proxy.wrappedValue.lineSegmentProxy.makeDragHandles(shape: segment, proxy: lineProxy))
 
-        case .circle(let circle):
+        case .circle:
             let circleBinding = Binding<Circle_>(
                 get: {
                     guard case .circle(let circle) = shape.wrappedValue.value else {
@@ -27,8 +44,11 @@ struct ShapeProxy: InteractiveProxy {
                 },
                 set: { shape.wrappedValue.value = .circle($0) }
             )
-            let edgePoint = CGPoint(x: circle.center.x + circle.radius, y: circle.center.y)
-            return AnyView(CircleProxy(edgePoint: edgePoint).makeDragHandles(shape: circleBinding))
+            let circleProxyBinding = Binding<CircleProxy>(
+                get: { proxy.wrappedValue.circleProxy },
+                set: { proxy.wrappedValue.circleProxy = $0 }
+            )
+            return AnyView(proxy.wrappedValue.circleProxy.makeDragHandles(shape: circleBinding, proxy: circleProxyBinding))
         }
     }
 }
@@ -43,7 +63,7 @@ struct ContentView: View {
 
     var body: some View {
         InteractiveCanvas(elements: $elements, id: \.id) { element in
-            AnyInteractiveProxy(ShapeProxy())
+            AnyInteractiveProxy(ShapeProxy(for: element.value))
         }
     }
 }
