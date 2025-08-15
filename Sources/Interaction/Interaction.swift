@@ -1,54 +1,86 @@
 import SwiftUI
 import Visualization
 
-public protocol Interactable {
-    var dragHandles: [Binding<CGPoint>] { get }
+public protocol InteractiveProxyRepresentable {
+    associatedtype Proxy: InteractiveProxy
+
+    func makeInteractiveProxy() -> Proxy
 }
 
-struct DragHandle {
-    // TODO : This is a binding
-    var getter: () -> CGPoint
-    var setter: (CGPoint) -> Void
+public struct Handle {
+    let getter: (any InteractiveProxy) -> CGPoint
+    let setter: (inout any InteractiveProxy, CGPoint) -> Void
+
+    public init<T>(getter: @escaping (T) -> CGPoint, setter: @escaping (inout T, CGPoint) -> Void) where T: InteractiveProxy {
+        self.getter = { proxy in
+            guard let proxy = proxy as? T else {
+                fatalError("Proxy type mismatch")
+            }
+            return getter(proxy)
+        }
+        self.setter = { proxy, point in
+            guard var typedProxy = proxy as? T else {
+                fatalError("Proxy type mismatch")
+            }
+            setter(&typedProxy, point)
+            proxy = typedProxy
+        }
+    }
+
 }
 
-public struct InteractiveCanvas: View {
-    @Binding
-    var elements: [any Interactable & VisualizationRepresentable]
+public protocol InteractiveProxy {
+    var handles: [Handle] { get }
+    func draw(in context: GraphicsContext)
+}
 
-    var renderer: ((inout GraphicsContext, CGSize) -> Void)?
 
-    public init(elements: Binding<[any Interactable & VisualizationRepresentable]>, renderer: ((inout GraphicsContext, CGSize) -> Void)? = nil) {
-        self._elements = elements
-        self.renderer = renderer
+public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hashable {
+
+    var elements: [Element]
+
+    @State
+    var proxies: [any InteractiveProxy] = []
+
+    let id: (Element) -> ElementID
+
+    let proxy: (Element) -> (any InteractiveProxy)
+
+    public init(elements: [Element], id: @escaping (Element) -> (ElementID), proxy: @escaping (Element) -> (any InteractiveProxy)) {
+        self.elements = elements
+        self.id = id
+        self.proxy = proxy
     }
 
     public var body: some View {
+        let ids = elements.map(id)
         ZStack {
             Canvas { context, size in
-                for element in elements {
-                    element.visualize(in: context, style: .init(), transform: .identity)
+                for proxy in proxies {
+                    proxy.draw(in: context)
                 }
-                renderer?(&context, size)
             }
-            ForEach(Array(elements.enumerated()), id: \.offset) { offset, element in
-                ForEach(Array(element.dragHandles.enumerated()), id: \.offset) { offset, handle in
+            ForEach(Array(proxies.enumerated()), id: \.0) { offset, proxy in
+                let handles = proxy.handles
+                ForEach(Array(handles.enumerated()), id: \.offset) { _, handle in
                     Circle()
                         .fill(Color.blue)
                         .frame(width: 10, height: 10)
-                        .position(handle.wrappedValue)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    handle.wrappedValue = value.location
+                        .position(handle.getter(proxy))
+                        .gesture(DragGesture().onChanged({ value in
+                            let location = value.location
+                            var tmp = proxy
+                            handle.setter(&tmp, location)
+                            self.proxies[offset] = tmp
+                        }))
 
-                                }
-                        )
                 }
             }
         }
+        .onChange(of: ids, initial: true) { oldValue, newValue in
+            // TODO: DO DIFF
+            print("CHANGED")
+            proxies = elements.map(proxy)
+        }
     }
 }
-
-
-// OLD
-
