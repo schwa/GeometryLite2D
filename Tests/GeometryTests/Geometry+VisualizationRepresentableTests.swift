@@ -219,12 +219,12 @@ struct GeometryVisualizationRepresentableTests {
         let line = Line(point: CGPoint(x: 5, y: 5), direction: CGVector(dx: 1, dy: 0))
         let bounds = line.boundingRect
         
-        // Line should extend 100 units in both directions
-        #expect(bounds.minX == -95) // 5 - 100
+        // Line should extend 1_000_000 units in both directions (from PathRepresentable)
+        #expect(bounds.minX == -999995) // 5 - 1_000_000
         #expect(bounds.minY == 5)
-        #expect(bounds.maxX == 105) // 5 + 100
+        #expect(bounds.maxX == 1000005) // 5 + 1_000_000
         #expect(bounds.maxY == 5)
-        #expect(bounds.width == 200)
+        #expect(bounds.width == 2000000)
         #expect(bounds.height == 0)
     }
     
@@ -233,14 +233,14 @@ struct GeometryVisualizationRepresentableTests {
         let line = Line(point: CGPoint(x: 0, y: 0), direction: CGVector(dx: 1, dy: 1))
         let bounds = line.boundingRect
         
-        // Should extend in both directions along normalized vector
+        // Line should extend 1_000_000 units in both directions along normalized diagonal
         let normalizedLength = sqrt(2.0)
-        let offset = 100 / normalizedLength
+        let offset = 1_000_000 / normalizedLength
         
-        #expect(abs(bounds.minX - (-offset)) < 0.01)
-        #expect(abs(bounds.minY - (-offset)) < 0.01)
-        #expect(abs(bounds.maxX - offset) < 0.01)
-        #expect(abs(bounds.maxY - offset) < 0.01)
+        #expect(abs(bounds.minX - (-offset)) < 1.0)
+        #expect(abs(bounds.minY - (-offset)) < 1.0)
+        #expect(abs(bounds.maxX - offset) < 1.0)
+        #expect(abs(bounds.maxY - offset) < 1.0)
     }
     
     @Test("Line vertical boundingRect")
@@ -248,12 +248,13 @@ struct GeometryVisualizationRepresentableTests {
         let line = Line(point: CGPoint(x: 3, y: 7), direction: CGVector(dx: 0, dy: 1))
         let bounds = line.boundingRect
         
+        // Line should extend 1_000_000 units in both directions (from PathRepresentable)
         #expect(bounds.minX == 3)
-        #expect(bounds.minY == -93) // 7 - 100
+        #expect(bounds.minY == -999993) // 7 - 1_000_000
         #expect(bounds.maxX == 3)
-        #expect(bounds.maxY == 107) // 7 + 100
+        #expect(bounds.maxY == 1000007) // 7 + 1_000_000
         #expect(bounds.width == 0)
-        #expect(bounds.height == 200)
+        #expect(bounds.height == 2000000)
     }
     
     // MARK: - Helper Extensions Tests
