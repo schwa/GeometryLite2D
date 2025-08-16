@@ -8,8 +8,13 @@ struct DragHandle: View {
 
     var body: some View {
         Circle()
-            .fill(Color.blue)
-            .frame(width: 10, height: 10)
+            .fill(Color.white)
+            .frame(width: 6, height: 6)
+            .padding(2)
+            .background {
+                Circle()
+                    .fill(Color.blue)
+            }
             .position(position)
             .gesture(
                 DragGesture()
@@ -65,7 +70,7 @@ extension Shape {
             self = .lineSegment(newValue)
         }
     }
-    
+
     var circle: Circle_? {
         get {
             guard case .circle(let circle) = self else { return nil }

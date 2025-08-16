@@ -96,6 +96,80 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
     case infinite(overlap: ParamOverlap, relation: Relation = .coincident)
 }
 
+// MARK: - CustomStringConvertible
+
+extension Intersection: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .none(_, let separation, let relation):
+            var parts = ["none(\(relation)"]
+            if let sep = separation { parts.append("sep:\(String(format: "%.3f", sep))") }
+            return parts.joined(separator: ", ")
+        case .finite(let hits, let spans, let relation):
+            return "finite(\(relation), \(hits.count) hits, \(spans.count) spans)"
+        case .infinite(_, let relation):
+            return "infinite(\(relation))"
+        }
+    }
+}
+
+extension Intersection.Interval: CustomStringConvertible {
+    public var description: String {
+        isEmpty ? "[]" : "[\(lower), \(upper)]"
+    }
+}
+
+extension Intersection.ParamOverlap: CustomStringConvertible {
+    public var description: String {
+        "(A:\(intervalA), B:\(intervalB))"
+    }
+}
+
+extension Intersection.FeatureID: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .vertex(let i): return "v\(i)"
+        case .edge(let i): return "e\(i)"
+        }
+    }
+}
+
+extension Intersection.Hit: CustomStringConvertible {
+    public var description: String {
+        let pt = String(format: "(%.2f,%.2f)", point.x, point.y)
+        return "\(kind)@\(pt)"
+    }
+}
+
+extension Intersection.Hit.Kind: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .crossing: return "×"
+        case .enter: return "→"
+        case .exit: return "←"
+        case .tangent: return "○"
+        }
+    }
+}
+
+extension Intersection.Span: CustomStringConvertible {
+    public var description: String {
+        "\(featureA):\(rangeA)↔\(featureB):\(rangeB)"
+    }
+}
+
+extension Intersection.Relation: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .disjoint: return "∅"
+        case .properIntersect: return "∩"
+        case .tangentContact: return "○"
+        case .coincident: return "≡"
+        case .containment: return "⊂"
+        }
+    }
+}
+
 
 // MARK: - Segment ⟂ Segment
 

@@ -31,7 +31,6 @@ struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRe
         ZStack {
             ForEach(Array(handles), id: \.key) { elementID, handles in
                 ForEach(Array(handles), id: \.key) { handleID, handle in
-
                     let binding = Binding<CGPoint>(
                         get: { handle.position },
                         set: { newPosition in
@@ -81,18 +80,20 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             VisualizationCanvas(elements: elements)
+            InteractiveCanvas(elements: $elements, id: \.id)
             Canvas { context, size in
                 for intersection in intersections {
                     switch intersection {
                     case .none(let closest, let separation, let relation):
                         if let closest {
-                            context.fill(Path(ellipseIn: CGRect(center: closest.a, size: CGSize(width: 8, height: 8))), with: .color(.red))
-                            context.fill(Path(ellipseIn: CGRect(center: closest.b, size: CGSize(width: 8, height: 8))), with: .color(.red))
+                            context.stroke(Path.saltire(in: CGRect(center: closest.a, size: CGSize(width: 6, height: 6))), with: .color(.red), lineWidth: 2)
+                            context.stroke(Path.saltire(in: CGRect(center: closest.b, size: CGSize(width: 6, height: 6))), with: .color(.red), lineWidth: 2)
+                            context.stroke(Path(start: closest.a, end: closest.b), with: .color(.red), style: .init(lineWidth: 1, dash: [4, 4]))
                         }
                     case .finite(let hits, let spans, let relation):
                         for hit in hits {
                             let point = hit.point
-                            context.fill(Path(ellipseIn: CGRect(center: point, size: CGSize(width: 8, height: 8))), with: .color(.red))
+                            context.stroke(Path.saltire(in: CGRect(center: point, size: CGSize(width: 6, height: 6))), with: .color(.red), lineWidth: 2)
                         }
                         break
                     case .infinite(let overlap, let relation):
@@ -100,7 +101,8 @@ struct ContentView: View {
                     }
                 }
             }
-            InteractiveCanvas(elements: $elements, id: \.id)
+            .allowsHitTesting(false)
+
         }
         .inspector(isPresented: .constant(true)) {
             List(Array(intersections.enumerated()), id: \.offset) { index, intersection in
@@ -252,3 +254,20 @@ extension Identified where ID == UUID {
     }
 }
 
+extension Path {
+    static func saltire(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        }
+    }
+
+    init(start: CGPoint, end: CGPoint) {
+        self.init { path in
+            path.move(to: start)
+            path.addLine(to: end)
+        }
+    }
+}
