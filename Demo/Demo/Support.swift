@@ -102,3 +102,27 @@ extension Shape: VisualizationRepresentable {
         }
     }
 }
+
+extension Identified where ID == UUID {
+    init(value: Value) {
+        self.init(id: UUID(), value: value)
+    }
+}
+
+extension Path {
+    static func saltire(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        }
+    }
+
+    init(start: CGPoint, end: CGPoint) {
+        self.init { path in
+            path.move(to: start)
+            path.addLine(to: end)
+        }
+    }
+}

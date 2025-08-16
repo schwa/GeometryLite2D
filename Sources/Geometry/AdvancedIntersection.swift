@@ -102,11 +102,11 @@ extension Intersection: CustomStringConvertible {
     public var description: String {
         switch self {
         case .none(_, let separation, let relation):
-            var parts = ["none(\(relation)"]
-            if let sep = separation { parts.append("sep:\(String(format: "%.3f", sep))") }
-            return parts.joined(separator: ", ")
+            var parts = ["none(\(relation))"]
+            if let sep = separation { parts.append("sep: \(String(format: "%.3f", sep))") }
+            return parts.joined(separator: " ")
         case .finite(let hits, let spans, let relation):
-            return "finite(\(relation), \(hits.count) hits, \(spans.count) spans)"
+            return "finite(\(relation)) \(hits.count) hits, \(spans.count) spans"
         case .infinite(_, let relation):
             return "infinite(\(relation))"
         }
@@ -115,57 +115,57 @@ extension Intersection: CustomStringConvertible {
 
 extension Intersection.Interval: CustomStringConvertible {
     public var description: String {
-        isEmpty ? "[]" : "[\(lower), \(upper)]"
+        isEmpty ? "empty" : "[\(lower)..\(upper)]"
     }
 }
 
 extension Intersection.ParamOverlap: CustomStringConvertible {
     public var description: String {
-        "(A:\(intervalA), B:\(intervalB))"
+        "overlap(A:\(intervalA) B:\(intervalB))"
     }
 }
 
 extension Intersection.FeatureID: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .vertex(let i): return "v\(i)"
-        case .edge(let i): return "e\(i)"
+        case .vertex(let i): return "vertex(\(i))"
+        case .edge(let i): return "edge(\(i))"
         }
     }
 }
 
 extension Intersection.Hit: CustomStringConvertible {
     public var description: String {
-        let pt = String(format: "(%.2f,%.2f)", point.x, point.y)
-        return "\(kind)@\(pt)"
+        let pt = String(format: "(%.2f, %.2f)", point.x, point.y)
+        return "\(kind) at \(pt)"
     }
 }
 
 extension Intersection.Hit.Kind: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .crossing: return "×"
-        case .enter: return "→"
-        case .exit: return "←"
-        case .tangent: return "○"
+        case .crossing: return "crossing"
+        case .enter: return "enter"
+        case .exit: return "exit"
+        case .tangent: return "tangent"
         }
     }
 }
 
 extension Intersection.Span: CustomStringConvertible {
     public var description: String {
-        "\(featureA):\(rangeA)↔\(featureB):\(rangeB)"
+        "span(\(featureA):\(rangeA) to \(featureB):\(rangeB))"
     }
 }
 
 extension Intersection.Relation: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .disjoint: return "∅"
-        case .properIntersect: return "∩"
-        case .tangentContact: return "○"
-        case .coincident: return "≡"
-        case .containment: return "⊂"
+        case .disjoint: return "disjoint"
+        case .properIntersect: return "intersect"
+        case .tangentContact: return "tangent"
+        case .coincident: return "coincident"
+        case .containment: return "contains"
         }
     }
 }
