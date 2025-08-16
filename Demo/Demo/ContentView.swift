@@ -70,14 +70,60 @@ struct ContentView: View {
     @State
     var elements: [Identified<UUID, Shape>] = [
         .init(id: .init(), value: .lineSegment(LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 250, y: 100)))),
+        .init(id: .init(), value: .lineSegment(LineSegment(start: CGPoint(x: 100, y: 100), end: CGPoint(x: 150, y: 150)))),
         .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 150, y: 150), radius: 50))),
         .init(id: .init(), value:.circle(Circle_(center: CGPoint(x: 250, y: 150), radius: 50))),
     ]
 
+    @State
+    var intersections: [Intersection<CGFloat, CGFloat>] = []
+
     var body: some View {
         ZStack {
             VisualizationCanvas(elements: elements)
+            Canvas { context, size in
+                for intersection in intersections {
+                    switch intersection {
+                    case .none(let closest, let separation, let relation):
+                        if let closest {
+                            context.fill(Path(ellipseIn: CGRect(center: closest.a, size: CGSize(width: 8, height: 8))), with: .color(.red))
+                            context.fill(Path(ellipseIn: CGRect(center: closest.b, size: CGSize(width: 8, height: 8))), with: .color(.red))
+                        }
+                    case .finite(let hits, let spans, let relation):
+                        for hit in hits {
+                            let point = hit.point
+                            context.fill(Path(ellipseIn: CGRect(center: point, size: CGSize(width: 8, height: 8))), with: .color(.red))
+                        }
+                        break
+                    case .infinite(let overlap, let relation):
+                        break
+                    }
+                }
+            }
             InteractiveCanvas(elements: $elements, id: \.id)
+        }
+        .inspector(isPresented: .constant(true)) {
+            List(Array(intersections.enumerated()), id: \.offset) { index, intersection in
+                Text("\(intersection)")
+            }
+        }
+        .onChange(of: elements, initial: true) {
+
+            intersections = []
+            for lhs in elements {
+                for rhs in elements where lhs.id != rhs.id {
+                    switch (lhs.value, rhs.value) {
+                    case (.lineSegment(let segment), .circle(let circle)), (.circle(let circle), .lineSegment(let segment)):
+                        intersections.append(intersect(segment, circle))
+                    case (.lineSegment(let lhs), .lineSegment(let rhs)):
+                        intersections.append(intersect(lhs, rhs))
+//                    case (.circle(let lhs), .circle(let rhs)):
+//                        intersections.append(intersect(lhs, rhs))
+                    default:
+                        break
+                    }
+                }
+            }
         }
     }
 }
