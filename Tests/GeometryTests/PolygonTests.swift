@@ -35,9 +35,9 @@ import Testing
     let square = Polygon([
         .zero, CGPoint(x: 2, y: 0), CGPoint(x: 2, y: 2), CGPoint(x: 0, y: 2)
     ])
-    #expect(square.simpleArea == 4)
+    #expect(abs(square.signedArea) == 4)
     let triangle = Polygon([
         .zero, CGPoint(x: 4, y: 0), CGPoint(x: 0, y: 3)
     ])
-    #expect(triangle.simpleArea == 6)
+    #expect(abs(triangle.signedArea) == 6)
 }

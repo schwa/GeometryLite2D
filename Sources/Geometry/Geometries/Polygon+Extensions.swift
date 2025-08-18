@@ -23,9 +23,7 @@ public extension Polygon {
         }
     }
 
-    /// The signed area of the polygon using the shoelace formula.
-    /// For simple polygons, a positive area indicates counter-clockwise winding.
-    var simpleArea: CGFloat {
+    var signedArea: CGFloat {
         guard vertices.count >= 3 else { return 0 }
 
         var sum: CGFloat = 0
@@ -38,14 +36,9 @@ public extension Polygon {
         return sum / 2
     }
 
-    /// Alias for simpleArea to match the removed GeometryNew code
-    var signedArea: CGFloat {
-        simpleArea
-    }
-
     /// Returns the winding order of the polygon
     var winding: Winding {
-        simpleArea >= 0 ? .counterClockwise : .clockwise
+        signedArea >= 0 ? .counterClockwise : .clockwise
     }
 }
 

@@ -5,15 +5,9 @@ import Foundation
 #endif
 
 public struct Polygon {
-    public var vertices: [CGPoint] {
-        willSet {
-            assert(vertices.count >= 3, "A polygon must have at least 3 vertices")
-        }
-    }
+    public var vertices: [CGPoint]
 
     public init(_ vertices: [CGPoint]) {
-        // TODO: Sanity check
-        assert(vertices.count >= 3, "A polygon must have at least 3 vertices")
         self.vertices = vertices
     }
 }
