@@ -54,24 +54,36 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
             case tangent
         }
         
+        public struct Info<Param> {
+            public var parameter: Param?
+            public var normal: CGPoint?
+            public var feature: FeatureID?
+            
+            public init(parameter: Param? = nil, normal: CGPoint? = nil, feature: FeatureID? = nil) {
+                self.parameter = parameter
+                self.normal = normal
+                self.feature = feature
+            }
+        }
+        
         public var point: CGPoint
         public var kind: Kind
-        public var parameterA: ParamA?
-        public var parameterB: ParamB?
-        public var normalA: CGPoint?
-        public var normalB: CGPoint?
-        public var featureA: FeatureID?
-        public var featureB: FeatureID?
+        public var infoA: Info<ParamA>
+        public var infoB: Info<ParamB>
         
+        public init(point: CGPoint, kind: Kind = .crossing, infoA: Info<ParamA> = Info(), infoB: Info<ParamB> = Info()) {
+            self.point = point
+            self.kind = kind
+            self.infoA = infoA
+            self.infoB = infoB
+        }
+        
+        // Convenience init for backwards compatibility
         public init(point: CGPoint, kind: Kind = .crossing, parameterA: ParamA? = nil, parameterB: ParamB? = nil, normalA: CGPoint? = nil, normalB: CGPoint? = nil, featureA: FeatureID? = nil, featureB: FeatureID? = nil) {
             self.point = point
             self.kind = kind
-            self.parameterA = parameterA
-            self.parameterB = parameterB
-            self.normalA = normalA
-            self.normalB = normalB
-            self.featureA = featureA
-            self.featureB = featureB
+            self.infoA = Info(parameter: parameterA, normal: normalA, feature: featureA)
+            self.infoB = Info(parameter: parameterB, normal: normalB, feature: featureB)
         }
     }
     
@@ -138,6 +150,18 @@ extension Intersection.Hit: CustomStringConvertible {
     public var description: String {
         let pt = String(format: "(%.2f, %.2f)", point.x, point.y)
         return "\(kind) at \(pt)"
+    }
+}
+
+extension Intersection.Hit.Info: CustomStringConvertible {
+    public var description: String {
+        var parts: [String] = []
+        if let param = parameter { parts.append("t:\(param)") }
+        if let feature = feature { parts.append("\(feature)") }
+        if let normal = normal { 
+            parts.append(String(format: "n:(%.2f,%.2f)", normal.x, normal.y)) 
+        }
+        return parts.isEmpty ? "none" : parts.joined(separator: " ")
     }
 }
 
@@ -367,8 +391,8 @@ public func intersect(_ segment: LineSegment, _ polygon: Polygon, epsilon: CGFlo
             for hit in edgeHits {
                 hits.append(Intersection<CGFloat, CGFloat>.Hit(point: hit.point,
                                                                kind: kind,
-                                                               parameterA: hit.parameterA, 
-                                                               parameterB: hit.parameterB,
+                                                               parameterA: hit.infoA.parameter, 
+                                                               parameterB: hit.infoB.parameter,
                                                                featureA: .edge(-1), // segment has implicit single edge
                                                                featureB: .edge(i)))
             }
