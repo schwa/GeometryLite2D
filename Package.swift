@@ -27,8 +27,8 @@ let package = Package(
                 .product(name: "Numerics", package: "swift-numerics")
             ]
         ),
-        .target(name: "Visualization",dependencies: []),
-        .target(name: "Interaction",dependencies: ["Visualization"]),
-        .testTarget(name: "GeometryTests",dependencies: ["Geometry"])
+        .target(name: "Visualization", dependencies: []),
+        .target(name: "Interaction", dependencies: ["Visualization"]),
+        .testTarget(name: "GeometryTests", dependencies: ["Geometry"])
     ]
 )

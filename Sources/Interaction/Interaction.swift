@@ -27,7 +27,6 @@ public struct Handle {
             proxy = typedProxy
         }
     }
-
 }
 
 public protocol InteractiveProxy {
@@ -35,22 +34,20 @@ public protocol InteractiveProxy {
     func draw(in context: GraphicsContext)
 }
 
-
 public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hashable {
-
     @Binding var elements: [Element]
 
     @State
-    var proxies: [any InteractiveProxy] = []
+    private var proxies: [any InteractiveProxy] = []
 
     let id: (Element) -> ElementID
-    
+
     let makeProxy: (Element) -> any InteractiveProxy
-    
+
     let updateElement: (Element, any InteractiveProxy) -> Element
 
     public init(
-        elements: Binding<[Element]>, 
+        elements: Binding<[Element]>,
         id: @escaping (Element) -> ElementID,
         makeProxy: @escaping (Element) -> any InteractiveProxy,
         updateElement: @escaping (Element, any InteractiveProxy) -> Element
@@ -64,7 +61,7 @@ public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hash
     public var body: some View {
         let ids = elements.map(id)
         ZStack {
-            Canvas { context, size in
+            Canvas { context, _ in
                 for proxy in proxies {
                     proxy.draw(in: context)
                 }
@@ -76,20 +73,19 @@ public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hash
                         .fill(Color.blue)
                         .frame(width: 10, height: 10)
                         .position(handle.getter(proxy))
-                        .gesture(DragGesture().onChanged({ value in
+                        .gesture(DragGesture().onChanged { value in
                             let location = value.location
                             var tmp = proxy
                             handle.setter(&tmp, location)
-                            self.proxies[offset] = tmp
-                            
-                            // Update the original element from the proxy
-                            self.elements[offset] = self.updateElement(self.elements[offset], tmp)
-                        }))
+                            proxies[offset] = tmp
 
+                            // Update the original element from the proxy
+                            elements[offset] = updateElement(elements[offset], tmp)
+                        })
                 }
             }
         }
-        .onChange(of: ids, initial: true) { oldValue, newValue in
+        .onChange(of: ids, initial: true) { _, _ in
             // TODO: DO DIFF
             print("CHANGED")
             proxies = elements.map(makeProxy)

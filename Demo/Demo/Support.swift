@@ -1,5 +1,5 @@
-import SwiftUI
 import Geometry
+import SwiftUI
 import Visualization
 
 struct DragHandle: View {
@@ -33,7 +33,7 @@ extension Identified: @retroactive Equatable where Value: Equatable {
 
 extension Identified: @retroactive VisualizationRepresentable where Value: VisualizationRepresentable {
     public var boundingRect: CGRect {
-        return value.boundingRect
+        value.boundingRect
     }
 
     public func visualize(in context: GraphicsContext, style: Visualization.VisualizationStyle, transform: CGAffineTransform) {
@@ -51,8 +51,10 @@ extension Shape: Equatable {
         switch (lhs, rhs) {
         case (.lineSegment(let lhs), .lineSegment(let rhs)):
             return lhs == rhs
+
         case (.circle(let lhs), .circle(let rhs)):
             return lhs == rhs
+
         default:
             return false
         }
@@ -66,7 +68,7 @@ extension Shape {
             return segment
         }
         set {
-            guard let newValue = newValue else { return }
+            guard let newValue else { return }
             self = .lineSegment(newValue)
         }
     }
@@ -77,7 +79,7 @@ extension Shape {
             return circle
         }
         set {
-            guard let newValue = newValue else { return }
+            guard let newValue else { return }
             self = .circle(newValue)
         }
     }
@@ -88,6 +90,7 @@ extension Shape: VisualizationRepresentable {
         switch self {
         case .lineSegment(let segment):
             return segment.boundingRect
+
         case .circle(let circle):
             return circle.boundingRect
         }
@@ -97,6 +100,7 @@ extension Shape: VisualizationRepresentable {
         switch self {
         case .lineSegment(let segment):
             segment.visualize(in: context, style: style, transform: transform)
+
         case .circle(let circle):
             circle.visualize(in: context, style: style, transform: transform)
         }

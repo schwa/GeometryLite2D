@@ -2,49 +2,48 @@ import CoreGraphics
 
 // MARK: - Utility Functions
 
-private func approxZero(_ value: CGFloat, epsilon: CGFloat) -> Bool { 
-    abs(value) <= epsilon 
+private func approxZero(_ value: CGFloat, epsilon: CGFloat) -> Bool {
+    abs(value) <= epsilon
 }
 
-private func clamp<T: Comparable>(_ value: T, _ lower: T, _ upper: T) -> T { 
-    min(max(value, lower), upper) 
+private func clamp<T: Comparable>(_ value: T, _ lower: T, _ upper: T) -> T {
+    min(max(value, lower), upper)
 }
 
 // MARK: - Intersection Types
 
 public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
-    
     /// Half-open numeric interval [lower, upper] (upper < lower => empty)
     public struct Interval<T: Comparable> {
         public var lower: T
         public var upper: T
-        
+
         public init(lower: T, upper: T) {
             self.lower = lower
             self.upper = upper
         }
-        
+
         public var isEmpty: Bool {
             upper < lower
         }
     }
-    
+
     /// Overlap of two param domains (e.g., segment t in [0,1])
     public struct ParamOverlap {
         public var intervalA: Interval<ParamA>
         public var intervalB: Interval<ParamB>
-        
+
         public init(intervalA: Interval<ParamA>, intervalB: Interval<ParamB>) {
             self.intervalA = intervalA
             self.intervalB = intervalB
         }
     }
-    
+
     public enum FeatureID: Equatable {
         case vertex(Int)
         case edge(Int)
     }
-    
+
     /// Single contact/hit point.
     public struct Hit {
         public enum Kind {
@@ -53,31 +52,31 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
             case exit
             case tangent
         }
-        
+
         public struct Info<Param> {
             public var parameter: Param?
             public var normal: CGPoint?
             public var feature: FeatureID?
-            
+
             public init(parameter: Param? = nil, normal: CGPoint? = nil, feature: FeatureID? = nil) {
                 self.parameter = parameter
                 self.normal = normal
                 self.feature = feature
             }
         }
-        
+
         public var point: CGPoint
         public var kind: Kind
         public var infoA: Info<ParamA>
         public var infoB: Info<ParamB>
-        
+
         public init(point: CGPoint, kind: Kind = .crossing, infoA: Info<ParamA> = Info(), infoB: Info<ParamB> = Info()) {
             self.point = point
             self.kind = kind
             self.infoA = infoA
             self.infoB = infoB
         }
-        
+
         // Convenience init for backwards compatibility
         public init(point: CGPoint, kind: Kind = .crossing, parameterA: ParamA? = nil, parameterB: ParamB? = nil, normalA: CGPoint? = nil, normalB: CGPoint? = nil, featureA: FeatureID? = nil, featureB: FeatureID? = nil) {
             self.point = point
@@ -86,7 +85,7 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
             self.infoB = Info(parameter: parameterB, normal: normalB, feature: featureB)
         }
     }
-    
+
     /// A span is a 1D overlap along two features (usually edges).
     public struct Span {
         public var featureA: FeatureID
@@ -94,7 +93,7 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
         public var featureB: FeatureID
         public var rangeB: Interval<ParamB>
     }
-    
+
     public enum Relation {
         case disjoint
         case properIntersect
@@ -102,7 +101,7 @@ public enum Intersection<ParamA: Comparable, ParamB: Comparable> {
         case coincident
         case containment
     }
-    
+
     case none(closest: (a: CGPoint, b: CGPoint)? = nil, separation: CGFloat? = nil, relation: Relation = .disjoint)
     case finite(hits: [Hit], spans: [Span] = [], relation: Relation)
     case infinite(overlap: ParamOverlap, relation: Relation = .coincident)
@@ -117,8 +116,10 @@ extension Intersection: CustomStringConvertible {
             var parts = ["none(\(relation))"]
             if let sep = separation { parts.append("sep: \(String(format: "%.3f", sep))") }
             return parts.joined(separator: " ")
+
         case .finite(let hits, let spans, let relation):
             return "finite(\(relation)) \(hits.count) hits, \(spans.count) spans"
+
         case .infinite(_, let relation):
             return "infinite(\(relation))"
         }
@@ -157,9 +158,9 @@ extension Intersection.Hit.Info: CustomStringConvertible {
     public var description: String {
         var parts: [String] = []
         if let param = parameter { parts.append("t:\(param)") }
-        if let feature = feature { parts.append("\(feature)") }
-        if let normal = normal { 
-            parts.append(String(format: "n:(%.2f,%.2f)", normal.x, normal.y)) 
+        if let feature { parts.append("\(feature)") }
+        if let normal {
+            parts.append(String(format: "n:(%.2f,%.2f)", normal.x, normal.y))
         }
         return parts.isEmpty ? "none" : parts.joined(separator: " ")
     }
@@ -193,7 +194,6 @@ extension Intersection.Relation: CustomStringConvertible {
         }
     }
 }
-
 
 // MARK: - Segment ⟂ Segment
 
@@ -238,11 +238,11 @@ public func intersect(_ segment1: LineSegment, _ segment2: LineSegment, epsilon:
     if param1 >= -epsilon && param1 <= 1 + epsilon && param2 >= -epsilon && param2 <= 1 + epsilon {
         let intersectionPoint = start1 + direction1 * param1
         let isTangent = (abs(param1) < epsilon || abs(param1 - 1) < epsilon ||
-                         abs(param2) < epsilon || abs(param2 - 1) < epsilon)
-        let hit = Intersection<CGFloat, CGFloat>.Hit(point: intersectionPoint, 
-                                                      kind: isTangent ? .tangent : .crossing, 
-                                                      parameterA: param1, 
-                                                      parameterB: param2)
+                            abs(param2) < epsilon || abs(param2 - 1) < epsilon)
+        let hit = Intersection<CGFloat, CGFloat>.Hit(point: intersectionPoint,
+                                                     kind: isTangent ? .tangent : .crossing,
+                                                     parameterA: param1,
+                                                     parameterB: param2)
         return .finite(hits: [hit], relation: isTangent ? .tangentContact : .properIntersect)
     }
 
@@ -278,10 +278,10 @@ private func closestPoints(_ segment1: LineSegment, _ segment2: LineSegment) -> 
         let dir1DotDir2 = direction1.dot(direction2)
         let dir1DotStartDiff = direction1.dot(startDifference)
         let denominator = dir1DotDir1 * dir2DotDir2 - dir1DotDir2 * dir1DotDir2
-        if denominator != 0 { 
-            param1 = clamp((dir1DotDir2 * dir2DotStartDiff - dir1DotStartDiff * dir2DotDir2) / denominator, 0, 1) 
-        } else { 
-            param1 = 0 
+        if denominator != 0 {
+            param1 = clamp((dir1DotDir2 * dir2DotStartDiff - dir1DotStartDiff * dir2DotDir2) / denominator, 0, 1)
+        } else {
+            param1 = 0
         }
         let param2Unclamped = (dir1DotDir2 * param1 + dir2DotStartDiff) / dir2DotDir2
         param2 = clamp(param2Unclamped, 0, 1)
@@ -391,16 +391,18 @@ public func intersect(_ segment: LineSegment, _ polygon: Polygon, epsilon: CGFlo
             for hit in edgeHits {
                 hits.append(Intersection<CGFloat, CGFloat>.Hit(point: hit.point,
                                                                kind: kind,
-                                                               parameterA: hit.infoA.parameter, 
+                                                               parameterA: hit.infoA.parameter,
                                                                parameterB: hit.infoB.parameter,
                                                                featureA: .edge(-1), // segment has implicit single edge
                                                                featureB: .edge(i)))
             }
+
         case .infinite(let overlap, _):
-            spans.append(Intersection<CGFloat, CGFloat>.Span(featureA: .edge(-1), 
-                                                              rangeA: overlap.intervalA, 
-                                                              featureB: .edge(i), 
-                                                              rangeB: overlap.intervalB))
+            spans.append(Intersection<CGFloat, CGFloat>.Span(featureA: .edge(-1),
+                                                             rangeA: overlap.intervalA,
+                                                             featureB: .edge(i),
+                                                             rangeB: overlap.intervalB))
+
         case .none:
             break
         }
@@ -451,4 +453,3 @@ private func pointInPolygon(_ point: CGPoint, _ vertices: [CGPoint], epsilon: CG
 }
 
 // MARK: -
-
