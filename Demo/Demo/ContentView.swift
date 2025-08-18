@@ -90,7 +90,7 @@ struct ContentView: View {
                             context.stroke(Path(start: closest.a, end: closest.b), with: .color(.red), style: .init(lineWidth: 1, dash: [4, 4]))
                         }
 
-                        case .finite(let hits, let spans, let relation):
+                    case .finite(let hits, let spans, let relation):
                         for hit in hits {
                             let point = hit.point
                             context.stroke(Path.saltire(in: CGRect(center: point, size: CGSize(width: 6, height: 6))), with: .color(.red), lineWidth: 2)
