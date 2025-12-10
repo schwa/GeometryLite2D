@@ -2,29 +2,6 @@ import Geometry
 import SwiftUI
 import Visualization
 
-struct DragHandle: View {
-    @Binding
-    var position: CGPoint
-
-    var body: some View {
-        Circle()
-            .fill(Color.white)
-            .frame(width: 6, height: 6)
-            .padding(2)
-            .background {
-                Circle()
-                    .fill(Color.blue)
-            }
-            .position(position)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        position = value.location
-                    }
-            )
-    }
-}
-
 extension Identified: @retroactive Equatable where Value: Equatable {
     public static func == (lhs: Identified, rhs: Identified) -> Bool {
         lhs.id == rhs.id && lhs.value == rhs.value

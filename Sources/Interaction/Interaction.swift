@@ -1,94 +1,74 @@
+import CoreGraphics
 import SwiftUI
-import Visualization
+public struct InteractiveHandle<ID: Hashable>: Identifiable {
+    public var id: ID
+    public var position: CGPoint
 
-public protocol InteractiveProxyRepresentable {
-    associatedtype Proxy: InteractiveProxy
-
-    func makeInteractiveProxy() -> Proxy
-    func updateFromProxy(_ proxy: Proxy) -> Self
-}
-
-public struct Handle {
-    let getter: (any InteractiveProxy) -> CGPoint
-    let setter: (inout any InteractiveProxy, CGPoint) -> Void
-
-    public init<T>(getter: @escaping (T) -> CGPoint, setter: @escaping (inout T, CGPoint) -> Void) where T: InteractiveProxy {
-        self.getter = { proxy in
-            guard let proxy = proxy as? T else {
-                fatalError("Proxy type mismatch")
-            }
-            return getter(proxy)
-        }
-        self.setter = { proxy, point in
-            guard var typedProxy = proxy as? T else {
-                fatalError("Proxy type mismatch")
-            }
-            setter(&typedProxy, point)
-            proxy = typedProxy
-        }
+    public init(id: ID, position: CGPoint) {
+        self.id = id
+        self.position = position
     }
 }
 
-public protocol InteractiveProxy {
-    var handles: [Handle] { get }
-    func draw(in context: GraphicsContext)
+public protocol InteractiveRepresentable {
+    associatedtype HandleID: Hashable
+    func makeHandles() -> [InteractiveHandle<HandleID>]
+    mutating func handleDidChange(id: HandleID, handles: inout [HandleID: InteractiveHandle<HandleID>])
 }
 
-public struct InteractiveCanvas <Element, ElementID>: View where ElementID: Hashable {
-    @Binding var elements: [Element]
+public struct InteractiveCanvas <Element, ElementID>: View where Element: InteractiveRepresentable, ElementID: Hashable {
+    @Binding
+    var elements: [Element]
+
+    var id: KeyPath<Element, ElementID>
 
     @State
-    private var proxies: [any InteractiveProxy] = []
+    private var handles: [ElementID: [Element.HandleID: InteractiveHandle<Element.HandleID>]] = [:]
 
-    let id: (Element) -> ElementID
-
-    let makeProxy: (Element) -> any InteractiveProxy
-
-    let updateElement: (Element, any InteractiveProxy) -> Element
-
-    public init(
-        elements: Binding<[Element]>,
-        id: @escaping (Element) -> ElementID,
-        makeProxy: @escaping (Element) -> any InteractiveProxy,
-        updateElement: @escaping (Element, any InteractiveProxy) -> Element
-    ) {
+    public init(elements: Binding<[Element]>, id: KeyPath<Element, ElementID>, handles: [ElementID : [Element.HandleID : InteractiveHandle<Element.HandleID>]] = [:]) {
         self._elements = elements
         self.id = id
-        self.makeProxy = makeProxy
-        self.updateElement = updateElement
+        self.handles = handles
     }
+
 
     public var body: some View {
-        let ids = elements.map(id)
         ZStack {
-            Canvas { context, _ in
-                for proxy in proxies {
-                    proxy.draw(in: context)
-                }
-            }
-            ForEach(Array(proxies.enumerated()), id: \.0) { offset, proxy in
-                let handles = proxy.handles
-                ForEach(Array(handles.enumerated()), id: \.offset) { _, handle in
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 10, height: 10)
-                        .position(handle.getter(proxy))
-                        .gesture(DragGesture().onChanged { value in
-                            let location = value.location
-                            var tmp = proxy
-                            handle.setter(&tmp, location)
-                            proxies[offset] = tmp
+            ForEach(Array(handles), id: \.key) { elementID, handles in
+                ForEach(Array(handles), id: \.key) { handleID, handle in
+                    let binding = Binding<CGPoint>(
+                        get: { handle.position },
+                        set: { newPosition in
+                            if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
+                                // Update handle position in state
+                                self.handles[elementID]?[handleID]?.position = newPosition
 
-                            // Update the original element from the proxy
-                            elements[offset] = updateElement(elements[offset], tmp)
-                        })
+                                // Get all handles for this element
+                                if var elementHandles = self.handles[elementID] {
+                                    // Tell element which handle changed, allowing it to update other handles
+                                    elements[elementIndex].handleDidChange(id: handleID, handles: &elementHandles)
+                                    // Save the potentially modified handles back
+                                    self.handles[elementID] = elementHandles
+                                }
+                            }
+                        }
+                    )
+                    DragHandle(position: binding)
                 }
             }
         }
-        .onChange(of: ids, initial: true) { _, _ in
-            // TODO: DO DIFF
-            print("CHANGED")
-            proxies = elements.map(makeProxy)
+        .onChange(of: elementIDs, initial: true) {
+            for (elementID, element) in zip(elementIDs, elements) {
+                let handles = element.makeHandles()
+                self.handles[elementID] = Dictionary(uniqueKeysWithValues: handles.map { handle in
+                    (handle.id, handle)
+                })
+            }
         }
     }
+
+    var elementIDs: [ElementID] {
+        elements.map { $0[keyPath: id] }
+    }
+
 }
