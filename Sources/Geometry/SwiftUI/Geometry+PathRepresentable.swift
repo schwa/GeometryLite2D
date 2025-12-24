@@ -99,10 +99,4 @@ extension Ray: PathRepresentable {
     }
 }
 
-// MARK: - CappedLineSegment PathRepresentable
 
-extension CappedLineSegment: PathRepresentable {
-    public func makePath() -> Path {
-        polygon.makePath()
-    }
-}
