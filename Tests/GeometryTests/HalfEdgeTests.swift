@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 import Geometry
+import GeometryCollections
 import Testing
 
 @Suite("HalfEdge Mesh Tests")

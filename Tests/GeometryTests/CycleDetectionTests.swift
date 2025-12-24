@@ -1,5 +1,6 @@
 import CoreGraphics
 @testable import Geometry
+import GeometryCollections
 import Testing
 
 @Suite("Cycle Detection Tests")

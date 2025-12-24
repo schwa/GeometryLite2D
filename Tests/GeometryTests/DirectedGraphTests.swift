@@ -1,5 +1,6 @@
 import Collections
 import Geometry
+import GeometryCollections
 import Testing
 
 @Suite("DirectedGraph Tests")

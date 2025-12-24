@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import Geometry
 
 // MARK: - Graph Types
 

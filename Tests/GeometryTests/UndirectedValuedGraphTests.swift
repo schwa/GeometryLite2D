@@ -1,5 +1,6 @@
 import Collections
 @testable import Geometry
+import GeometryCollections
 import Testing
 
 @Suite("UndirectedValuedGraph Tests")

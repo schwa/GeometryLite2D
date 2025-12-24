@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import Geometry
 
 public struct HalfEdgeMesh<ID: Hashable> {
     // Stable ids
