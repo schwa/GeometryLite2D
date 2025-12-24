@@ -255,8 +255,7 @@ struct ThickenDemoView: DemoView {
                         let graph = Scene.buildGraph(vertices: graphVertices, edgeIndices: currentScene.graphEdgeIndices)
 
                         // Thicken the graph
-                        let atoms = thickenGraph(
-                            graph,
+                        let atoms = graph.thickened(
                             width: lineWidth,
                             joinStyle: joinStyle,
                             capStyle: capStyle
@@ -282,16 +281,13 @@ struct ThickenDemoView: DemoView {
                         // Get atoms from junction or polyline
                         let atoms: [Atom]
                         if let center = junctionCenter {
-                            atoms = thickenJunction(
-                                center: center,
-                                endpoints: junctionEndpoints,
+                            atoms = Junction(center: center, vertices: junctionEndpoints).thickened(
                                 width: lineWidth,
                                 joinStyle: joinStyle,
                                 capStyle: capStyle
                             )
                         } else {
-                            atoms = thickenPolyline(
-                                points: points,
+                            atoms = Polyline(vertices: points).thickened(
                                 width: lineWidth,
                                 joinStyle: joinStyle,
                                 capStyle: capStyle,

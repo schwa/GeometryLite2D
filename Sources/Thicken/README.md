@@ -20,15 +20,32 @@ This module provides stroke-to-fill conversion, similar to what graphics systems
 ## Usage
 
 ```swift
+import Geometry
 import Thicken
 
 // Thicken a polyline
-let atoms = thickenPolyline(
-    points: [CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 0), CGPoint(x: 100, y: 100)],
+let polyline = Polyline(vertices: [
+    CGPoint(x: 0, y: 0),
+    CGPoint(x: 100, y: 0),
+    CGPoint(x: 100, y: 100)
+])
+let atoms = polyline.thickened(
     width: 20,
     joinStyle: .miter(limit: 10),
     capStyle: .round
 )
+
+// Thicken a junction
+let junction = Junction(center: CGPoint(x: 100, y: 100), vertices: [
+    CGPoint(x: 0, y: 100),
+    CGPoint(x: 200, y: 100),
+    CGPoint(x: 100, y: 200)
+])
+let junctionAtoms = junction.thickened(width: 20, joinStyle: .bevel)
+
+// Thicken a graph
+let graph: UndirectedGraph<CGPoint> = ...
+let graphAtoms = graph.thickened(width: 20, capStyle: .round)
 
 // Convert to SwiftUI paths for rendering
 for atom in atoms {
