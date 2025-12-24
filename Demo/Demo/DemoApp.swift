@@ -1,3 +1,4 @@
+import DemoKit
 import SwiftUI
 
 @main

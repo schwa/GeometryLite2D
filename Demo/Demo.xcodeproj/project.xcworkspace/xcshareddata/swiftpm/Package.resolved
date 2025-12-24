@@ -1,6 +1,15 @@
 {
-  "originHash" : "92dbc0d1608412100aa7bc251e608858aae3d1582b5de397752ef670e4d9a2b4",
+  "originHash" : "eed149749e32cc7e3d3b2332d44b4f590410e7d740412d13fcfc74554c4a9196",
   "pins" : [
+    {
+      "identity" : "demokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/schwa/DemoKit",
+      "state" : {
+        "revision" : "e3e8fb2166fc1e478bbd628b98593bf7029f5e54",
+        "version" : "0.1.1"
+      }
+    },
     {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
