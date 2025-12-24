@@ -40,8 +40,9 @@ let package = Package(
         .target(name: "Interaction", dependencies: ["Visualization"]),
         .target(
             name: "Thicken",
-            dependencies: ["Geometry"]
+            dependencies: ["Geometry", "GeometryCollections"]
         ),
-        .testTarget(name: "GeometryTests", dependencies: ["Geometry", "GeometryCollections"])
+        .testTarget(name: "GeometryTests", dependencies: ["Geometry", "GeometryCollections"]),
+        .testTarget(name: "ThickenTests", dependencies: ["Thicken", "Geometry"])
     ]
 )

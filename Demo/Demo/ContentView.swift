@@ -4,7 +4,8 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         DemoPickerView(demos: [
-            IntersectionDemoView.self
+            IntersectionDemoView.self,
+            ThickenDemoView.self
         ])
     }
 }
