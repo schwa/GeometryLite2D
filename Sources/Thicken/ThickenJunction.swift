@@ -12,7 +12,7 @@ import SwiftUI
 ///   - joinStyle: Join style for outer gaps (> 180°)
 ///   - capStyles: Cap style for each segment endpoint (must match endpoints count)
 /// - Returns: Array of atoms (segments and knee caps)
-public func junction(
+public func thickenJunction(
     center: CGPoint,
     endpoints: [CGPoint],
     width: CGFloat,
@@ -39,14 +39,14 @@ public func junction(
 }
 
 /// Convenience overload using same cap style for all endpoints
-public func junction(
+public func thickenJunction(
     center: CGPoint,
     endpoints: [CGPoint],
     width: CGFloat,
     joinStyle: JoinStyle = .miter,
     capStyle: CapStyle = .butt
 ) -> [Atom] {
-    junction(
+    thickenJunction(
         center: center,
         endpoints: endpoints,
         width: width,

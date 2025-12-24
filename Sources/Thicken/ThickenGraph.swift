@@ -51,7 +51,7 @@ public func thickenGraph(
         }
 
         // Use junction to thicken this vertex's half-edges
-        let vertexAtoms = junction(
+        let vertexAtoms = thickenJunction(
             center: vertex,
             endpoints: midpoints,
             width: width,

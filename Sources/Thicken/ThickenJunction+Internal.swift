@@ -12,7 +12,7 @@ internal func twoWayJunction(
     joinStyle: JoinStyle,
     capStyle: CapStyle
 ) -> [Atom] {
-    polyline(
+    thickenPolyline(
         points: [endpoints[0], center, endpoints[1]],
         width: width,
         joinStyle: joinStyle,

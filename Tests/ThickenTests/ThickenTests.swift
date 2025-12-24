@@ -350,19 +350,19 @@ struct PolylineTests {
 
     @Test("2-point polyline produces paths")
     func twoPointPolyline() {
-        let paths = polyline(points: [[0, 0], [100, 0]], width: width)
+        let paths = thickenPolyline(points: [[0, 0], [100, 0]], width: width)
         #expect(paths.count >= 1)
     }
 
     @Test("3-point polyline produces paths")
     func threePointPolyline() {
-        let paths = polyline(points: [[0, 0], [100, 0], [100, 100]], width: width)
+        let paths = thickenPolyline(points: [[0, 0], [100, 0], [100, 100]], width: width)
         #expect(paths.count >= 2)
     }
 
     @Test("Polyline paths are not empty")
     func polylinePathsNotEmpty() {
-        let paths = polyline(points: [[0, 0], [100, 0], [100, 100]], width: width)
+        let paths = thickenPolyline(points: [[0, 0], [100, 0], [100, 100]], width: width)
         for path in paths {
             #expect(!path.isEmpty)
         }
@@ -370,13 +370,13 @@ struct PolylineTests {
 
     @Test("Polyline with bevel join")
     func polylineBevel() {
-        let paths = polyline(points: [[0, 0], [100, 0], [100, 100]], width: width, joinStyle: .bevel)
+        let paths = thickenPolyline(points: [[0, 0], [100, 0], [100, 100]], width: width, joinStyle: .bevel)
         #expect(paths.count >= 2)
     }
 
     @Test("Polyline with round join")
     func polylineRound() {
-        let paths = polyline(points: [[0, 0], [100, 0], [100, 100]], width: width, joinStyle: .round)
+        let paths = thickenPolyline(points: [[0, 0], [100, 0], [100, 100]], width: width, joinStyle: .round)
         #expect(paths.count >= 2)
     }
 }
@@ -391,28 +391,28 @@ struct JunctionTests {
     @Test("2-way junction produces paths")
     func twoWayJunction() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200]]
-        let paths = junction(center: center, endpoints: endpoints, width: width)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width)
         #expect(paths.count >= 2)
     }
 
     @Test("3-way junction produces paths")
     func threeWayJunction() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width)
         #expect(paths.count >= 3)
     }
 
     @Test("4-way junction produces paths")
     func fourWayJunction() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 100], [200, 300]]
-        let paths = junction(center: center, endpoints: endpoints, width: width)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width)
         #expect(paths.count >= 4)
     }
 
     @Test("Junction paths are not empty")
     func junctionPathsNotEmpty() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width)
         for path in paths {
             #expect(!path.isEmpty)
         }
@@ -421,21 +421,21 @@ struct JunctionTests {
     @Test("Junction with bevel")
     func junctionBevel() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
         #expect(paths.count >= 3)
     }
 
     @Test("Junction with round")
     func junctionRound() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, joinStyle: .round)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, joinStyle: .round)
         #expect(paths.count >= 3)
     }
 
     @Test("Cross junction (4-way)")
     func crossJunction() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 100], [200, 300]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
         #expect(paths.count == 4)  // No knee caps for perfect cross
     }
 
@@ -450,7 +450,7 @@ struct JunctionTests {
             CGPoint(x: center.x + r * cos(angle2), y: center.y + r * sin(angle2)),
             CGPoint(x: center.x + r * cos(angle3), y: center.y + r * sin(angle3))
         ]
-        let paths = junction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, joinStyle: .bevel)
         #expect(paths.count == 3)  // No knee caps for 120° gaps
     }
 }
@@ -465,21 +465,21 @@ struct JunctionCapTests {
     @Test("Junction with butt caps")
     func junctionButtCaps() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, capStyle: .butt)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, capStyle: .butt)
         #expect(paths.count >= 3)
     }
 
     @Test("Junction with square caps")
     func junctionSquareCaps() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, capStyle: .square)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, capStyle: .square)
         #expect(paths.count >= 2)
     }
 
     @Test("Junction with round caps")
     func junctionRoundCaps() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 320]]
-        let paths = junction(center: center, endpoints: endpoints, width: width, capStyle: .round)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width, capStyle: .round)
         #expect(paths.count >= 3)
     }
 }
@@ -494,7 +494,7 @@ struct JunctionMiterLimitTests {
     @Test("Junction miter with high limit")
     func junctionMiterHighLimit() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 300]]
-        let paths = junction(center: center, endpoints: endpoints, width: width,
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width,
                              joinStyle: .miter(limit: 100))
         #expect(paths.count >= 3)
     }
@@ -502,7 +502,7 @@ struct JunctionMiterLimitTests {
     @Test("Junction miter with low limit")
     func junctionMiterLowLimit() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 250]]
-        let paths = junction(center: center, endpoints: endpoints, width: width,
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width,
                              joinStyle: .miter(limit: 1))
         #expect(paths.count >= 3)
     }
@@ -548,7 +548,7 @@ struct EdgeCaseTests {
     func singlePointJunction() {
         let center = CGPoint(x: 100, y: 100)
         let endpoints: [CGPoint] = [[150, 100]]
-        let paths = junction(center: center, endpoints: endpoints, width: width)
+        let paths = thickenJunction(center: center, endpoints: endpoints, width: width)
         #expect(paths.count >= 1)
     }
 
@@ -565,13 +565,13 @@ struct EdgeCaseTests {
 
     @Test("Empty polyline")
     func emptyPolyline() {
-        let paths = polyline(points: [], width: width)
+        let paths = thickenPolyline(points: [], width: width)
         #expect(paths.isEmpty)
     }
 
     @Test("Single point polyline")
     func singlePointPolyline() {
-        let paths = polyline(points: [[100, 100]], width: width)
+        let paths = thickenPolyline(points: [[100, 100]], width: width)
         #expect(paths.isEmpty)
     }
 }

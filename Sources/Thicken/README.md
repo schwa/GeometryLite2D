@@ -23,7 +23,7 @@ This module provides stroke-to-fill conversion, similar to what graphics systems
 import Thicken
 
 // Thicken a polyline
-let atoms = polyline(
+let atoms = thickenPolyline(
     points: [CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 0), CGPoint(x: 100, y: 100)],
     width: 20,
     joinStyle: .miter(limit: 10),

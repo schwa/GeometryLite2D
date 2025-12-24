@@ -282,7 +282,7 @@ struct ThickenDemoView: DemoView {
                         // Get atoms from junction or polyline
                         let atoms: [Atom]
                         if let center = junctionCenter {
-                            atoms = junction(
+                            atoms = thickenJunction(
                                 center: center,
                                 endpoints: junctionEndpoints,
                                 width: lineWidth,
@@ -290,7 +290,7 @@ struct ThickenDemoView: DemoView {
                                 capStyle: capStyle
                             )
                         } else {
-                            atoms = polyline(
+                            atoms = thickenPolyline(
                                 points: points,
                                 width: lineWidth,
                                 joinStyle: joinStyle,

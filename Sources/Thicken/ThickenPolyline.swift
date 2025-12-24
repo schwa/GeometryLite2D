@@ -10,7 +10,7 @@ import SwiftUI
 ///   - capStyle: Cap style for endpoints (ignored if closed)
 ///   - closed: If true, adds implicit segment from last to first point
 /// - Returns: Array of atoms (segments and knee caps)
-public func polyline(
+public func thickenPolyline(
     points: [CGPoint],
     width: CGFloat,
     joinStyle: JoinStyle = .miter,
@@ -23,7 +23,7 @@ public func polyline(
 
     // For closed paths, need at least 3 points to form a polygon
     if closed, points.count < 3 {
-        return polyline(points: points, width: width, joinStyle: joinStyle, capStyle: capStyle, closed: false)
+        return thickenPolyline(points: points, width: width, joinStyle: joinStyle, capStyle: capStyle, closed: false)
     }
 
     var segments = zip(points, points.dropFirst()).map { LineSegment(start: $0, end: $1) }
