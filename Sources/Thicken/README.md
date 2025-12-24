@@ -6,7 +6,7 @@ Line thickening algorithms for converting line segments, polylines, junctions, a
 
 ## Overview
 
-This module provides stroke-to-fill conversion, similar to what graphics systems do internally when stroking paths with a given line width. The output is a set of geometric primitives (`Atom`) that can be rendered as filled shapes.
+This module provides stroke-to-fill conversion, similar to what graphics systems do internally when stroking paths with a given line width. The output is a set of geometric primitives (`ThickenPrimitive`) that can be rendered as filled shapes.
 
 ## Features
 
@@ -41,11 +41,11 @@ let junction = Junction(center: CGPoint(x: 100, y: 100), vertices: [
     CGPoint(x: 200, y: 100),
     CGPoint(x: 100, y: 200)
 ])
-let junctionAtoms = junction.thickened(width: 20, joinStyle: .bevel)
+let junctionThickenPrimitives = junction.thickened(width: 20, joinStyle: .bevel)
 
 // Thicken a graph
 let graph: UndirectedGraph<CGPoint> = ...
-let graphAtoms = graph.thickened(width: 20, capStyle: .round)
+let graphThickenPrimitives = graph.thickened(width: 20, capStyle: .round)
 
 // Convert to SwiftUI paths for rendering
 for atom in atoms {

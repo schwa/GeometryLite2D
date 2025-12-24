@@ -107,7 +107,7 @@ internal func thickenedSegment(
     endCap: CapStyle = .butt,
     startJoint: JointEnd? = nil,
     endJoint: JointEnd? = nil
-) -> [Atom] {
+) -> [ThickenPrimitive] {
     let halfWidth = width / 2
     let normal = segment.normal * halfWidth
     let dir = segment.direction
@@ -143,7 +143,7 @@ internal func thickenedSegment(
         endRight = adjusted.right
     }
 
-    var atoms: [Atom] = []
+    var atoms: [ThickenPrimitive] = []
 
     // Determine body polygon vertices based on cap styles
     let effectiveStartCap = startJoint == nil ? startCap : .butt
@@ -290,7 +290,7 @@ internal func kneeCap(
     length2: CGFloat,
     width: CGFloat,
     style: JoinStyle
-) -> Atom? {
+) -> ThickenPrimitive? {
     let corners = JointCorners(center: center, direction1: direction1, direction2: direction2, halfWidth: width / 2)
     let clipPt = kneePit(center: center, direction1: direction1, direction2: direction2, length1: length1, length2: length2, width: width)
 

@@ -20,8 +20,8 @@ public extension UndirectedGraph where Vertex == CGPoint {
         width: CGFloat,
         joinStyle: JoinStyle = .miter,
         capStyle: CapStyle = .butt
-    ) -> [Atom] {
-        var atoms: [Atom] = []
+    ) -> [ThickenPrimitive] {
+        var atoms: [ThickenPrimitive] = []
 
         // Pre-compute degree of each vertex to identify tails
         var vertexDegree: [CGPoint: Int] = [:]

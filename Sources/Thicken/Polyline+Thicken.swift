@@ -15,7 +15,7 @@ public extension Polyline {
         joinStyle: JoinStyle = .miter,
         capStyle: CapStyle = .butt,
         closed: Bool = false
-    ) -> [Atom] {
+    ) -> [ThickenPrimitive] {
         guard vertices.count >= 2 else {
             return []
         }
@@ -32,7 +32,7 @@ public extension Polyline {
             segments.append(LineSegment(start: last, end: first))
         }
 
-        var atoms: [Atom] = []
+        var atoms: [ThickenPrimitive] = []
         let n = segments.count
 
         for (i, segment) in segments.enumerated() {

@@ -17,7 +17,7 @@ extension Array where Element == Path {
     }
 }
 
-extension Array where Element == Atom {
+extension Array where Element == ThickenPrimitive {
     var combinedBounds: CGRect {
         map { $0.toPath() }.combinedBounds
     }
@@ -27,7 +27,7 @@ extension Array where Element == Atom {
     }
 }
 
-extension Atom {
+extension ThickenPrimitive {
     var boundingRect: CGRect {
         toPath().boundingRect
     }
@@ -576,13 +576,13 @@ struct EdgeCaseTests {
     }
 }
 
-// MARK: - Atom Tests
+// MARK: - ThickenPrimitive Tests
 
-@Suite("Atom")
-struct AtomTests {
+@Suite("ThickenPrimitive")
+struct ThickenPrimitiveTests {
     @Test("Polygon with 4 vertices")
     func polygonPath() {
-        let atom = Atom.polygon(vertices: [[0, 0], [100, 0], [100, 50], [0, 50]])
+        let atom = ThickenPrimitive.polygon(vertices: [[0, 0], [100, 0], [100, 50], [0, 50]])
         let path = atom.toPath()
         #expect(!path.isEmpty)
         #expect(path.boundingRect.width.isApproximatelyEqual(to: 100, absoluteTolerance: 0.001))
@@ -591,7 +591,7 @@ struct AtomTests {
 
     @Test("Wedge (triangle)")
     func wedgePath() {
-        let atom = Atom.wedge(apex: [50, 0], p0: [0, 100], p2: [100, 100])
+        let atom = ThickenPrimitive.wedge(apex: [50, 0], p0: [0, 100], p2: [100, 100])
         let path = atom.toPath()
         #expect(!path.isEmpty)
         #expect(path.contains(CGPoint(x: 50, y: 50)))
@@ -600,7 +600,7 @@ struct AtomTests {
     @Test("Pieslice")
     func pieslicePath() {
         let center = CGPoint(x: 50, y: 50)
-        let atom = Atom.pieslice(apex: center, arcCenter: center, p0: [100, 50], p2: [50, 100], clockwise: true)
+        let atom = ThickenPrimitive.pieslice(apex: center, arcCenter: center, p0: [100, 50], p2: [50, 100], clockwise: true)
         let path = atom.toPath()
         #expect(!path.isEmpty)
         #expect(path.contains(center))
@@ -608,7 +608,7 @@ struct AtomTests {
 
     @Test("Empty polygon")
     func emptyPolygon() {
-        let atom = Atom.polygon(vertices: [])
+        let atom = ThickenPrimitive.polygon(vertices: [])
         let path = atom.toPath()
         #expect(path.isEmpty)
     }

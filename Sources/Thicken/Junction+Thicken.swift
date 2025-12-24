@@ -15,7 +15,7 @@ public extension Junction {
         width: CGFloat,
         joinStyle: JoinStyle = .miter,
         capStyles: [CapStyle]
-    ) -> [Atom] {
+    ) -> [ThickenPrimitive] {
         guard vertices.count >= 2 else {
             if let vertex = vertices.first {
                 let seg = LineSegment(start: center, end: vertex)
@@ -40,7 +40,7 @@ public extension Junction {
         width: CGFloat,
         joinStyle: JoinStyle = .miter,
         capStyle: CapStyle = .butt
-    ) -> [Atom] {
+    ) -> [ThickenPrimitive] {
         thickened(
             width: width,
             joinStyle: joinStyle,

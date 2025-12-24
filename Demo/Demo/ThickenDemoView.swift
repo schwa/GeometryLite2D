@@ -279,7 +279,7 @@ struct ThickenDemoView: DemoView {
                         context.stroke(linePath, with: .color(.red), lineWidth: 1)
                     } else {
                         // Get atoms from junction or polyline
-                        let atoms: [Atom]
+                        let atoms: [ThickenPrimitive]
                         if let center = junctionCenter {
                             atoms = Junction(center: center, vertices: junctionEndpoints).thickened(
                                 width: lineWidth,

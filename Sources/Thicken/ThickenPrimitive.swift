@@ -1,10 +1,10 @@
 import CoreGraphics
 import SwiftUI
 
-// MARK: - Atom
+// MARK: - ThickenPrimitive
 
 /// Primitive geometric shapes that can be converted to paths
-public enum Atom {
+public enum ThickenPrimitive {
     /// A closed polygon defined by vertices in order
     case polygon(vertices: [CGPoint])
 
@@ -15,7 +15,7 @@ public enum Atom {
     case pieslice(apex: CGPoint, arcCenter: CGPoint, p0: CGPoint, p2: CGPoint, clockwise: Bool)
 }
 
-extension Atom {
+extension ThickenPrimitive {
     public func toPath() -> Path {
         var path = Path()
 
@@ -55,9 +55,9 @@ extension Atom {
     }
 }
 
-// MARK: - [Atom] Extensions
+// MARK: - [ThickenPrimitive] Extensions
 
-extension Array where Element == Atom {
+extension Array where Element == ThickenPrimitive {
     /// Convert all atoms to triangle paths (fan triangulation for polygons, arc approximation for pieslices)
     /// - Parameter pixelsPerSegment: Target arc segment length in pixels (smaller = smoother arcs)
     public func toTriangles(pixelsPerSegment: CGFloat = 4) -> [Path] {

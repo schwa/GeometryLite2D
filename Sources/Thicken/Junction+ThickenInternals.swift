@@ -11,7 +11,7 @@ internal func twoWayJunction(
     width: CGFloat,
     joinStyle: JoinStyle,
     capStyle: CapStyle
-) -> [Atom] {
+) -> [ThickenPrimitive] {
     Polyline(vertices: [endpoints[0], center, endpoints[1]]).thickened(
         width: width,
         joinStyle: joinStyle,
@@ -26,7 +26,7 @@ internal func nWayJunction(
     width: CGFloat,
     joinStyle: JoinStyle,
     capStyles: [CapStyle]
-) -> [Atom] {
+) -> [ThickenPrimitive] {
     // Pair segments with their original cap styles, then sort by angle
     var segmentsWithCaps: [(segment: LineSegment, capStyle: CapStyle)] = zip(endpoints, capStyles).map { endpoint, cap in
         (LineSegment(start: center, end: endpoint), cap)
@@ -38,7 +38,7 @@ internal func nWayJunction(
 
     let n = segments.count
     let halfWidth = width / 2
-    var atoms: [Atom] = []
+    var atoms: [ThickenPrimitive] = []
 
     var gaps: [CGFloat] = []
     for i in 0..<n {
