@@ -30,7 +30,7 @@ struct LineSegmentsDemoView: DemoView {
     @State private var segments: [TypedLineSegment] = [
         TypedLineSegment(id: "1", type: "primary", segment: LineSegment(start: [100, 100], end: [300, 100])),
         TypedLineSegment(id: "2", type: "secondary", segment: LineSegment(start: [100, 150], end: [300, 200])),
-        TypedLineSegment(id: "3", type: "primary", segment: LineSegment(start: [150, 50], end: [150, 250]))
+        TypedLineSegment(id: "3", type: "primary", segment: LineSegment(start: [150, 50], end: [150, 100])) // T-junction with segment 1
     ]
 
     @State private var snappingEnabled = false
@@ -264,6 +264,63 @@ struct LineSegmentsDemoView: DemoView {
         return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
     }
 
+    private func splitSegments(options: SplitOptions) {
+        let lineSegments = segments.map(\.segment)
+
+        // Use a tolerance based on bounding box
+        let tolerance: CGFloat
+        if let bbox = segmentsBoundingBox {
+            let diagonal = hypot(bbox.width, bbox.height)
+            tolerance = max(diagonal * 0.001, 0.01)
+        } else {
+            tolerance = 0.1
+        }
+
+        let result = resolveTJunctions(segments: lineSegments, options: options, absoluteTolerance: tolerance)
+
+        // Build new segments list, preserving type from original
+        var newSegments: [TypedLineSegment] = []
+        for segment in segments {
+            if let splitSegments = result[segment.segment] {
+                for (index, splitSegment) in splitSegments.enumerated() {
+                    let id = splitSegments.count > 1 ? "\(segment.id)#\(index)" : segment.id
+                    newSegments.append(TypedLineSegment(id: id, type: segment.type, segment: splitSegment))
+                }
+            }
+        }
+
+        segments = newSegments
+        selection.removeAll()
+    }
+
+    private func quantizeSegments() {
+        // Collect all endpoints
+        let allPoints = segments.flatMap { [$0.segment.start, $0.segment.end] }
+
+        // Quantize with a tolerance (e.g., 1% of bounding box diagonal)
+        let tolerance: CGFloat
+        if let bbox = segmentsBoundingBox {
+            let diagonal = hypot(bbox.width, bbox.height)
+            tolerance = max(diagonal * 0.01, 0.1)
+        } else {
+            tolerance = 1.0
+        }
+
+        let (mapping, _) = quantize(points: allPoints, tolerance: tolerance)
+
+        // Apply the mapping to all segments
+        segments = segments.map { segment in
+            var newSegment = segment
+            if let newStart = mapping[segment.segment.start] {
+                newSegment.segment.start = newStart
+            }
+            if let newEnd = mapping[segment.segment.end] {
+                newSegment.segment.end = newEnd
+            }
+            return newSegment
+        }
+    }
+
     private func zoomToFit(viewSize: CGSize) {
         guard let bbox = segmentsBoundingBox else { return }
 
@@ -476,6 +533,24 @@ struct LineSegmentsDemoView: DemoView {
                     ForEach(ColorMode.allCases, id: \.self) { mode in
                         Text(mode.rawValue).tag(mode)
                     }
+                }
+            }
+            ToolbarItem {
+                Menu {
+                    Button("Quantize") {
+                        quantizeSegments()
+                    }
+                    Button("Split T-Junctions") {
+                        splitSegments(options: .tJunctions)
+                    }
+                    Button("Split Crossings") {
+                        splitSegments(options: .crossings)
+                    }
+                    Button("Split All") {
+                        splitSegments(options: .all)
+                    }
+                } label: {
+                    Label("Transform", systemImage: "wand.and.stars")
                 }
             }
             ToolbarItem {
