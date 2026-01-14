@@ -4,6 +4,7 @@ import GeometryCollections
 import Interaction
 import SwiftFormats
 import SwiftUI
+import Thicken
 import Visualization
 
 struct GraphDemoView: DemoView {
@@ -45,6 +46,8 @@ struct GraphDemoView: DemoView {
     @State private var currentTool: Tool = .select
     @State private var showInspector: Bool = true
     @State private var snapOptions: SnapOptions = [.endpoints, .grid]
+    @State private var showThickened: Bool = false
+    @State private var thickenWidth: CGFloat = 10
 
     @State private var segments: [TypedLineSegment] = [
         TypedLineSegment(id: "1", type: "primary", segment: LineSegment(start: [100, 100], end: [300, 100])),
@@ -514,102 +517,125 @@ struct GraphDemoView: DemoView {
         )
     }
 
+    @ViewBuilder
+    private var gridCanvas: some View {
+        Canvas { context, _ in
+            context.concatenate(canvasTransform)
+
+            let minorGrid: CGFloat = 10
+            let majorGrid: CGFloat = 100
+            let roi = regionOfInterest
+
+            let startX = floor(roi.minX / minorGrid) * minorGrid
+            let endX = ceil(roi.maxX / minorGrid) * minorGrid
+            let startY = floor(roi.minY / minorGrid) * minorGrid
+            let endY = ceil(roi.maxY / minorGrid) * minorGrid
+
+            let lineWidth: CGFloat = 1 / scale
+
+            // Draw vertical lines
+            var x = startX
+            while x <= endX {
+                var path = Path()
+                path.move(to: CGPoint(x: x, y: roi.minY))
+                path.addLine(to: CGPoint(x: x, y: roi.maxY))
+
+                let color: Color
+                let intX = Int(x)
+                if intX == 0 {
+                    color = .red.opacity(0.5)
+                } else if intX % Int(majorGrid) == 0 {
+                    color = .gray.opacity(0.3)
+                } else {
+                    color = .gray.opacity(0.1)
+                }
+                context.stroke(path, with: .color(color), lineWidth: lineWidth)
+                x += minorGrid
+            }
+
+            // Draw horizontal lines
+            var y = startY
+            while y <= endY {
+                var path = Path()
+                path.move(to: CGPoint(x: roi.minX, y: y))
+                path.addLine(to: CGPoint(x: roi.maxX, y: y))
+
+                let color: Color
+                let intY = Int(y)
+                if intY == 0 {
+                    color = .green.opacity(0.5)
+                } else if intY % Int(majorGrid) == 0 {
+                    color = .gray.opacity(0.3)
+                } else {
+                    color = .gray.opacity(0.1)
+                }
+                context.stroke(path, with: .color(color), lineWidth: lineWidth)
+                y += minorGrid
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private var thickenedCanvas: some View {
+        Canvas { context, _ in
+            context.concatenate(canvasTransform)
+
+            let atoms = graph.thickened(width: thickenWidth, joinStyle: .miter(limit: 10), capStyle: .round)
+            for atom in atoms {
+                let path = atom.toPath()
+                context.fill(path, with: .color(.gray.opacity(0.3)))
+                context.stroke(path, with: .color(.gray.opacity(0.5)), lineWidth: 1 / scale)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private var segmentsCanvas: some View {
+        Canvas { context, _ in
+            context.concatenate(canvasTransform)
+
+            for segment in segments {
+                let isSelected = selection.contains(segment.id)
+                let segmentColor = color(for: segment)
+                let lineWidth: CGFloat = 2 / scale
+
+                var path = Path()
+                path.move(to: segment.segment.start)
+                path.addLine(to: segment.segment.end)
+
+                // Draw selection highlight behind the segment
+                if isSelected {
+                    context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 8 / scale, lineCap: .round))
+                }
+
+                context.stroke(path, with: .color(segmentColor), lineWidth: lineWidth)
+
+                // Draw endpoints
+                let endpointSize: CGFloat = 8 / scale
+                context.fill(
+                    Path(ellipseIn: CGRect(center: segment.segment.start, size: [endpointSize, endpointSize])),
+                    with: .color(segmentColor)
+                )
+                context.fill(
+                    Path(ellipseIn: CGRect(center: segment.segment.end, size: [endpointSize, endpointSize])),
+                    with: .color(segmentColor)
+                )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
             ZStack {
-                // Grid
-                Canvas { context, _ in
-                    context.concatenate(canvasTransform)
-
-                    let minorGrid: CGFloat = 10
-                    let majorGrid: CGFloat = 100
-                    let roi = regionOfInterest
-
-                    let startX = floor(roi.minX / minorGrid) * minorGrid
-                    let endX = ceil(roi.maxX / minorGrid) * minorGrid
-                    let startY = floor(roi.minY / minorGrid) * minorGrid
-                    let endY = ceil(roi.maxY / minorGrid) * minorGrid
-
-                    let lineWidth: CGFloat = 1 / scale
-
-                    // Draw vertical lines
-                    var x = startX
-                    while x <= endX {
-                        var path = Path()
-                        path.move(to: CGPoint(x: x, y: roi.minY))
-                        path.addLine(to: CGPoint(x: x, y: roi.maxY))
-
-                        let color: Color
-                        let intX = Int(x)
-                        if intX == 0 {
-                            color = .red.opacity(0.5)
-                        } else if intX % Int(majorGrid) == 0 {
-                            color = .gray.opacity(0.3)
-                        } else {
-                            color = .gray.opacity(0.1)
-                        }
-                        context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                        x += minorGrid
-                    }
-
-                    // Draw horizontal lines
-                    var y = startY
-                    while y <= endY {
-                        var path = Path()
-                        path.move(to: CGPoint(x: roi.minX, y: y))
-                        path.addLine(to: CGPoint(x: roi.maxX, y: y))
-
-                        let color: Color
-                        let intY = Int(y)
-                        if intY == 0 {
-                            color = .green.opacity(0.5)
-                        } else if intY % Int(majorGrid) == 0 {
-                            color = .gray.opacity(0.3)
-                        } else {
-                            color = .gray.opacity(0.1)
-                        }
-                        context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                        y += minorGrid
-                    }
+                Color.white
+                gridCanvas
+                if showThickened {
+                    thickenedCanvas
                 }
-                .allowsHitTesting(false)
-
-                // Segments
-                Canvas { context, _ in
-                    context.concatenate(canvasTransform)
-
-                    for segment in segments {
-                        let isSelected = selection.contains(segment.id)
-                        let segmentColor = color(for: segment)
-                        let lineWidth: CGFloat = 2 / scale
-
-                        var path = Path()
-                        path.move(to: segment.segment.start)
-                        path.addLine(to: segment.segment.end)
-
-                        // Draw selection highlight behind the segment
-                        if isSelected {
-                            context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 8 / scale, lineCap: .round))
-                        }
-
-                        context.stroke(path, with: .color(segmentColor), lineWidth: lineWidth)
-
-                        // Draw endpoints
-                        let endpointSize: CGFloat = 8 / scale
-                        context.fill(
-                            Path(ellipseIn: CGRect(center: segment.segment.start, size: [endpointSize, endpointSize])),
-                            with: .color(segmentColor)
-                        )
-                        context.fill(
-                            Path(ellipseIn: CGRect(center: segment.segment.end, size: [endpointSize, endpointSize])),
-                            with: .color(segmentColor)
-                        )
-                    }
-
-
-                }
-                .allowsHitTesting(false)
-
+                segmentsCanvas
                 InteractiveCanvas(elements: $segments, id: \.id, snap: snapClosure, transform: canvasTransform)
             }
             .frame(width: contentSize.width, height: contentSize.height)
@@ -649,7 +675,7 @@ struct GraphDemoView: DemoView {
             )
         }
         .scrollPosition($scrollPosition)
-        .background(.white)
+        .background(Color(white: 0.9))
         .overlay(alignment: .bottom) {
             HStack(spacing: 12) {
                 if !snapOptions.isEmpty {
@@ -701,7 +727,7 @@ struct GraphDemoView: DemoView {
             viewSize = newSize
         }
         .toolbar {
-            ToolbarItem {
+            ToolbarItem(placement: .principal) {
                 Picker("Tool", selection: $currentTool) {
                     ForEach(Tool.allCases, id: \.self) { tool in
                         Text(tool.rawValue).tag(tool)
@@ -709,57 +735,35 @@ struct GraphDemoView: DemoView {
                 }
                 .pickerStyle(.segmented)
             }
-            ToolbarItem {
+            ToolbarItem(placement: .principal) {
                 Picker("Color", selection: $colorMode) {
                     ForEach(ColorMode.allCases, id: \.self) { mode in
                         Text(mode.rawValue).tag(mode)
                     }
                 }
             }
-            ToolbarItem {
-                Menu {
-                    Button("Quantize") {
-                        quantizeSegments()
-                    }
-                    Button("Split T-Junctions") {
-                        splitSegments(options: .tJunctions)
-                    }
-                    Button("Split Crossings") {
-                        splitSegments(options: .crossings)
-                    }
-                    Button("Split All") {
-                        splitSegments(options: .all)
-                    }
-                } label: {
-                    Label("Transform", systemImage: "wand.and.stars")
-                }
+            ToolbarItem(placement: .principal) {
+                ThickenToolbarItem(showThickened: $showThickened, thickenWidth: $thickenWidth)
             }
-            ToolbarItem {
-                Menu {
-                    Toggle("Endpoints", isOn: Binding(
-                        get: { snapOptions.contains(.endpoints) },
-                        set: { if $0 { snapOptions.insert(.endpoints) } else { snapOptions.remove(.endpoints) } }
-                    ))
-                    Toggle("Lines", isOn: Binding(
-                        get: { snapOptions.contains(.lines) },
-                        set: { if $0 { snapOptions.insert(.lines) } else { snapOptions.remove(.lines) } }
-                    ))
-                    Toggle("Grid", isOn: Binding(
-                        get: { snapOptions.contains(.grid) },
-                        set: { if $0 { snapOptions.insert(.grid) } else { snapOptions.remove(.grid) } }
-                    ))
-                } label: {
-                    Label("Snap", systemImage: "magnet")
-                }
+            ToolbarItem(placement: .principal) {
+                TransformToolbarItem(
+                    onQuantize: quantizeSegments,
+                    onSplitTJunctions: { splitSegments(options: .tJunctions) },
+                    onSplitCrossings: { splitSegments(options: .crossings) },
+                    onSplitAll: { splitSegments(options: .all) }
+                )
             }
-            ToolbarItem {
+            ToolbarItem(placement: .principal) {
+                SnapToolbarItem(snapOptions: $snapOptions)
+            }
+            ToolbarItem(placement: .principal) {
                 Button {
                     zoomToFit(viewSize: viewSize)
                 } label: {
                     Label("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right")
                 }
             }
-            ToolbarItem {
+            ToolbarItem(placement: .principal) {
                 Button {
                     regionOfInterest = CGRect(x: 0, y: 0, width: 1000, height: 1000)
                     scale = 1.0
@@ -787,6 +791,82 @@ struct GraphDemoView: DemoView {
         }
         .onChange(of: segments) {
             regenerateShortIDs()
+        }
+    }
+}
+
+// MARK: - TransformToolbarItem
+
+private struct TransformToolbarItem: View {
+    let onQuantize: () -> Void
+    let onSplitTJunctions: () -> Void
+    let onSplitCrossings: () -> Void
+    let onSplitAll: () -> Void
+
+    var body: some View {
+        Menu {
+            Button("Quantize", action: onQuantize)
+            Button("Split T-Junctions", action: onSplitTJunctions)
+            Button("Split Crossings", action: onSplitCrossings)
+            Button("Split All", action: onSplitAll)
+        } label: {
+            Label("Transform", systemImage: "wand.and.stars")
+        }
+    }
+}
+
+// MARK: - SnapToolbarItem
+
+private struct SnapToolbarItem: View {
+    @Binding var snapOptions: GraphDemoView.SnapOptions
+
+    var body: some View {
+        Menu {
+            Toggle("Endpoints", isOn: Binding(
+                get: { snapOptions.contains(.endpoints) },
+                set: { if $0 { snapOptions.insert(.endpoints) } else { snapOptions.remove(.endpoints) } }
+            ))
+            Toggle("Lines", isOn: Binding(
+                get: { snapOptions.contains(.lines) },
+                set: { if $0 { snapOptions.insert(.lines) } else { snapOptions.remove(.lines) } }
+            ))
+            Toggle("Grid", isOn: Binding(
+                get: { snapOptions.contains(.grid) },
+                set: { if $0 { snapOptions.insert(.grid) } else { snapOptions.remove(.grid) } }
+            ))
+        } label: {
+            Label("Snap", systemImage: "magnet")
+        }
+    }
+}
+
+// MARK: - ThickenToolbarItem
+
+private struct ThickenToolbarItem: View {
+    @Binding var showThickened: Bool
+    @Binding var thickenWidth: CGFloat
+    @State private var showPopover: Bool = false
+
+    private var widthBinding: Binding<Double> {
+        Binding(
+            get: { Double(thickenWidth) },
+            set: { thickenWidth = CGFloat($0) }
+        )
+    }
+
+    var body: some View {
+        Button {
+            showPopover = true
+        } label: {
+            Label(showThickened ? "Thicken (\(Int(thickenWidth)))" : "Thicken", systemImage: "lineweight")
+        }
+        .popover(isPresented: $showPopover) {
+            Form {
+                Toggle("Show Thickened", isOn: $showThickened)
+                TextField("Width", value: widthBinding, format: .number)
+            }
+            .frame(width: 200)
+            .padding()
         }
     }
 }
