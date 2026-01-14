@@ -21,21 +21,21 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
     var elements: [Element]
 
     var id: KeyPath<Element, ElementID>
+    var snap: ((CGPoint, [CGPoint]) -> CGPoint)?
 
     @State
     private var handles: [ElementID: [Element.HandleID: InteractiveHandle<Element.HandleID>]] = [:]
 
-    public init(elements: Binding<[Element]>, id: KeyPath<Element, ElementID>, handles: [ElementID : [Element.HandleID : InteractiveHandle<Element.HandleID>]] = [:]) {
+    public init(elements: Binding<[Element]>, id: KeyPath<Element, ElementID>, snap: ((CGPoint, [CGPoint]) -> CGPoint)? = nil) {
         self._elements = elements
         self.id = id
-        self.handles = handles
+        self.snap = snap
     }
-
 
     public var body: some View {
         ZStack {
-            ForEach(Array(handles), id: \.key) { elementID, handles in
-                ForEach(Array(handles), id: \.key) { handleID, handle in
+            ForEach(Array(handles), id: \.key) { elementID, elementHandles in
+                ForEach(Array(elementHandles), id: \.key) { handleID, handle in
                     let binding = Binding<CGPoint>(
                         get: { handle.position },
                         set: { newPosition in
@@ -53,7 +53,11 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
                             }
                         }
                     )
-                    DragHandle(position: binding)
+                    let snapTargets = allHandlePositions(excluding: elementID, handleID: handleID)
+                    let snapClosure: ((CGPoint) -> CGPoint)? = snap.map { snap in
+                        { point in snap(point, snapTargets) }
+                    }
+                    DragHandle(position: binding, snap: snapClosure)
                 }
             }
         }
@@ -65,6 +69,24 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
                 })
             }
         }
+    }
+
+    private func allHandlePositions(excluding elementID: ElementID, handleID: Element.HandleID) -> [CGPoint] {
+        var positions: [CGPoint] = []
+        for (elID, elementHandles) in handles {
+            for (hID, handle) in elementHandles {
+                // Exclude the current handle being dragged
+                if elID == elementID && hID == handleID {
+                    continue
+                }
+                // Also exclude the partner handle on the same element (e.g., other end of same line segment)
+                if elID == elementID {
+                    continue
+                }
+                positions.append(handle.position)
+            }
+        }
+        return positions
     }
 
     var elementIDs: [ElementID] {

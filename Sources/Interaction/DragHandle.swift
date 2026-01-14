@@ -4,8 +4,11 @@ public struct DragHandle: View {
     @Binding
     var position: CGPoint
 
-    public init(position: Binding<CGPoint>) {
+    var snap: ((CGPoint) -> CGPoint)?
+
+    public init(position: Binding<CGPoint>, snap: ((CGPoint) -> CGPoint)? = nil) {
         self._position = position
+        self.snap = snap
     }
 
     public var body: some View {
@@ -21,7 +24,8 @@ public struct DragHandle: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        position = value.location
+                        let newPosition = snap?(value.location) ?? value.location
+                        position = newPosition
                     }
             )
     }
