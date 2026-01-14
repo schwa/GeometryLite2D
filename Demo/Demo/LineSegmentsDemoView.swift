@@ -1,5 +1,6 @@
 import DemoKit
 import Geometry
+import GeometryCollections
 import Interaction
 import SwiftFormats
 import SwiftUI
@@ -247,6 +248,14 @@ struct LineSegmentsDemoView: DemoView {
             }
         }
         return nil
+    }
+
+    private var graph: UndirectedGraph<CGPoint> {
+        var g = UndirectedGraph<CGPoint>()
+        for segment in segments {
+            g.add(edge: .init(from: segment.segment.start, to: segment.segment.end))
+        }
+        return g
     }
 
     private var segmentsBoundingBox: CGRect? {
@@ -574,7 +583,7 @@ struct LineSegmentsDemoView: DemoView {
             }
         }
         .inspector(isPresented: .constant(true)) {
-            InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest)
+            InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest, graph: graph)
         }
     }
 }
@@ -600,6 +609,7 @@ private struct InspectorView: View {
     @Binding var selection: Set<String>
     var contentBoundingBox: CGRect?
     var regionOfInterest: CGRect
+    var graph: UndirectedGraph<CGPoint>
 
     var body: some View {
         TabView {
@@ -608,6 +618,9 @@ private struct InspectorView: View {
             }
             Tab("Canvas", systemImage: "rectangle.dashed") {
                 canvasInfoForm
+            }
+            Tab("Graph", systemImage: "point.3.connected.trianglepath.dotted") {
+                graphInfoForm
             }
         }
     }
@@ -633,15 +646,32 @@ private struct InspectorView: View {
         Form {
             Section("Region of Interest") {
                 Text(regionOfInterest.formatted())
-                    .font(.caption.monospaced())
             }
             Section("Content Bounding Box") {
                 if let bbox = contentBoundingBox {
                     Text(bbox.formatted())
-                        .font(.caption.monospaced())
                 } else {
                     Text("No content")
                         .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private var graphInfoForm: some View {
+        Form {
+            Section("Summary") {
+                LabeledContent("Vertices", value: "\(graph.vertices.count)")
+                LabeledContent("Edges", value: "\(graph.edges.count)")
+            }
+            Section("Vertices") {
+                ForEach(Array(graph.vertices), id: \.self) { vertex in
+                    HStack {
+                        Text(vertex.formatted())
+                        Spacer()
+                        Text("\(graph.neighbors(of: vertex).count) neighbors")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
