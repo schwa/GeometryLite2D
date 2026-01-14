@@ -6,11 +6,11 @@ import SwiftFormats
 import SwiftUI
 import Visualization
 
-struct LineSegmentsDemoView: DemoView {
+struct GraphDemoView: DemoView {
     static var metadata = DemoMetadata(
         type: Self.self,
-        description: "Canvas with typed line segments",
-        keywords: ["line", "segment", "canvas"]
+        description: "Graph editor with segments, selection, and transforms",
+        keywords: ["graph", "segment", "canvas", "selection"]
     )
 
     init() {}
@@ -40,6 +40,7 @@ struct LineSegmentsDemoView: DemoView {
     @State private var shiftKeyDown = false
     @State private var colorMode: ColorMode = .byType
     @State private var selection: Set<String> = []
+    @State private var shortIDs: [AnyHashable: Int] = [:]
 
     // Region of interest - the world coordinate space we're viewing
     @State private var regionOfInterest: CGRect = CGRect(x: 0, y: 0, width: 1000, height: 1000)
@@ -55,6 +56,21 @@ struct LineSegmentsDemoView: DemoView {
     @State private var scrollPosition: ScrollPosition = .init(point: .zero)
 
     private let snapRadius: CGFloat = 10
+
+    private func regenerateShortIDs() {
+        var newShortIDs: [AnyHashable: Int] = [:]
+        for (index, segment) in segments.enumerated() {
+            newShortIDs[segment.id] = index + 1
+        }
+        shortIDs = newShortIDs
+    }
+
+    private func displayID(for id: String) -> String {
+        if let shortID = shortIDs[id] {
+            return "Edge-\(shortID)"
+        }
+        return id
+    }
 
     private func color(for segment: TypedLineSegment) -> Color {
         switch colorMode {
@@ -512,14 +528,20 @@ struct LineSegmentsDemoView: DemoView {
             }
         }
         .inspector(isPresented: .constant(true)) {
-            InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest, graph: graph)
+            InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest, graph: graph, shortIDs: shortIDs)
+        }
+        .onAppear {
+            regenerateShortIDs()
+        }
+        .onChange(of: segments) {
+            regenerateShortIDs()
         }
     }
 }
 
 // MARK: - InteractiveRepresentable
 
-extension LineSegmentsDemoView.TypedLineSegment: InteractiveRepresentable {
+extension GraphDemoView.TypedLineSegment: InteractiveRepresentable {
     typealias HandleID = LineSegment.HandleID
 
     func makeHandles() -> [InteractiveHandle<HandleID>] {
@@ -534,11 +556,19 @@ extension LineSegmentsDemoView.TypedLineSegment: InteractiveRepresentable {
 // MARK: - InspectorView
 
 private struct InspectorView: View {
-    @Binding var segments: [LineSegmentsDemoView.TypedLineSegment]
+    @Binding var segments: [GraphDemoView.TypedLineSegment]
     @Binding var selection: Set<String>
     var contentBoundingBox: CGRect?
     var regionOfInterest: CGRect
     var graph: UndirectedGraph<CGPoint>
+    var shortIDs: [AnyHashable: Int]
+
+    private func displayID(for id: String) -> String {
+        if let shortID = shortIDs[id] {
+            return "Edge-\(shortID)"
+        }
+        return id
+    }
 
     var body: some View {
         TabView {
@@ -558,7 +588,7 @@ private struct InspectorView: View {
         List(segments, selection: $selection) { segment in
             let length = hypot(segment.segment.end.x - segment.segment.start.x, segment.segment.end.y - segment.segment.start.y)
             VStack(alignment: .leading) {
-                Text(segment.id)
+                Text(displayID(for: segment.id))
                 Text("Type: \(segment.type)")
                     .foregroundStyle(.secondary)
                 Text("Start: \(segment.segment.start.formatted())")

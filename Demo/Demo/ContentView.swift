@@ -6,7 +6,7 @@ struct ContentView: View {
         DemoPickerView(demos: [
             IntersectionDemoView.self,
             ThickenDemoView.self,
-            LineSegmentsDemoView.self
+            GraphDemoView.self
         ])
     }
 }
