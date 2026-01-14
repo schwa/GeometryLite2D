@@ -40,9 +40,6 @@ struct LineSegmentsDemoView: DemoView {
     @State private var shiftKeyDown = false
     @State private var colorMode: ColorMode = .byType
     @State private var selection: Set<String> = []
-    @State private var selectionBeforeMarquee: Set<String> = []
-    @State private var marqueeStart: CGPoint?
-    @State private var marqueeEnd: CGPoint?
 
     // Region of interest - the world coordinate space we're viewing
     @State private var regionOfInterest: CGRect = CGRect(x: 0, y: 0, width: 1000, height: 1000)
@@ -204,70 +201,6 @@ struct LineSegmentsDemoView: DemoView {
         }
     }
 
-    private func screenToWorld(_ point: CGPoint) -> CGPoint {
-        point.applying(canvasTransform.inverted())
-    }
-
-    private func updateSelectionFromMarquee() {
-        guard let rect = marqueeRect else { return }
-        // Convert marquee corners to world coordinates
-        let topLeft = screenToWorld(rect.origin)
-        let bottomRight = screenToWorld(CGPoint(x: rect.maxX, y: rect.maxY))
-        let worldRect = CGRect(
-            x: min(topLeft.x, bottomRight.x),
-            y: min(topLeft.y, bottomRight.y),
-            width: abs(bottomRight.x - topLeft.x),
-            height: abs(bottomRight.y - topLeft.y)
-        )
-        var newSelection = selectionBeforeMarquee
-        for segment in segments {
-            // Select if either endpoint is in the marquee, or if the segment intersects the marquee
-            if worldRect.contains(segment.segment.start) || worldRect.contains(segment.segment.end) || segmentIntersectsRect(segment.segment, worldRect) {
-                newSelection.insert(segment.id)
-            }
-        }
-        selection = newSelection
-    }
-
-    private func segmentIntersectsRect(_ segment: LineSegment, _ rect: CGRect) -> Bool {
-        // Check if segment intersects any edge of the rect
-        let topLeft = CGPoint(x: rect.minX, y: rect.minY)
-        let topRight = CGPoint(x: rect.maxX, y: rect.minY)
-        let bottomLeft = CGPoint(x: rect.minX, y: rect.maxY)
-        let bottomRight = CGPoint(x: rect.maxX, y: rect.maxY)
-
-        let edges = [
-            LineSegment(start: topLeft, end: topRight),
-            LineSegment(start: topRight, end: bottomRight),
-            LineSegment(start: bottomRight, end: bottomLeft),
-            LineSegment(start: bottomLeft, end: topLeft)
-        ]
-
-        for edge in edges {
-            if segmentsIntersect(segment, edge) {
-                return true
-            }
-        }
-        return false
-    }
-
-    private func segmentsIntersect(_ a: LineSegment, _ b: LineSegment) -> Bool {
-        func cross(_ o: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
-            (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-        }
-
-        let d1 = cross(b.start, b.end, a.start)
-        let d2 = cross(b.start, b.end, a.end)
-        let d3 = cross(a.start, a.end, b.start)
-        let d4 = cross(a.start, a.end, b.end)
-
-        if ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-           ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)) {
-            return true
-        }
-        return false
-    }
-
     private let hitToleranceScreen: CGFloat = 10
 
     private func segmentAt(_ point: CGPoint) -> TypedLineSegment? {
@@ -278,6 +211,14 @@ struct LineSegmentsDemoView: DemoView {
             }
         }
         return nil
+    }
+
+    private func segmentBoundingRect(_ segment: TypedLineSegment) -> CGRect {
+        let minX = min(segment.segment.start.x, segment.segment.end.x)
+        let minY = min(segment.segment.start.y, segment.segment.end.y)
+        let maxX = max(segment.segment.start.x, segment.segment.end.x)
+        let maxY = max(segment.segment.start.y, segment.segment.end.y)
+        return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
     }
 
     private var graph: UndirectedGraph<CGPoint> {
@@ -391,16 +332,6 @@ struct LineSegmentsDemoView: DemoView {
         scrollPosition = ScrollPosition(point: .zero)
     }
 
-    private var marqueeRect: CGRect? {
-        guard let start = marqueeStart, let end = marqueeEnd else { return nil }
-        return CGRect(
-            x: min(start.x, end.x),
-            y: min(start.y, end.y),
-            width: abs(end.x - start.x),
-            height: abs(end.y - start.y)
-        )
-    }
-
     private var canvasTransform: CGAffineTransform {
         // Transform from world coordinates to view coordinates
         // 1. Translate so ROI origin is at (0,0)
@@ -458,49 +389,17 @@ struct LineSegmentsDemoView: DemoView {
                 .allowsHitTesting(false)
 
                 InteractiveCanvas(elements: $segments, id: \.id, snap: snapClosure, transform: canvasTransform)
-
-                // Marquee drawing (in content space)
-                Canvas { context, _ in
-                    if let rect = marqueeRect {
-                        context.stroke(Path(rect), with: .color(.accentColor), lineWidth: 1)
-                        context.fill(Path(rect), with: .color(.accentColor.opacity(0.1)))
-                    }
-                }
-                .allowsHitTesting(false)
             }
             .frame(width: contentSize.width, height: contentSize.height)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 5)
-                    .onChanged { value in
-                        if marqueeStart == nil {
-                            marqueeStart = value.startLocation
-                            selectionBeforeMarquee = shiftKeyDown ? selection : []
-                        }
-                        marqueeEnd = value.location
-                        updateSelectionFromMarquee()
-                    }
-                    .onEnded { _ in
-                        marqueeStart = nil
-                        marqueeEnd = nil
-                    }
+            .selectable(
+                selection: $selection,
+                items: segments,
+                itemRect: segmentBoundingRect,
+                hitTest: segmentAt,
+                transform: canvasTransform,
+                shiftKeyDown: shiftKeyDown
             )
-            .onTapGesture { location in
-                let worldLocation = screenToWorld(location)
-                if let tappedSegment = segmentAt(worldLocation) {
-                    if shiftKeyDown {
-                        if selection.contains(tappedSegment.id) {
-                            selection.remove(tappedSegment.id)
-                        } else {
-                            selection.insert(tappedSegment.id)
-                        }
-                    } else {
-                        selection = [tappedSegment.id]
-                    }
-                } else {
-                    selection.removeAll()
-                }
-            }
             .gesture(
                 MagnifyGesture()
                     .onChanged { value in
