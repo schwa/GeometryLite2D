@@ -26,6 +26,8 @@ struct LineSegmentsDemoView: DemoView {
         case byID = "By ID"
         case byType = "By Type"
         case byLength = "By Length"
+        case byDegree = "By Degree"
+        case byComponent = "By Component"
     }
 
     @State private var segments: [TypedLineSegment] = [
@@ -67,6 +69,10 @@ struct LineSegmentsDemoView: DemoView {
             return Color(glasbeyIndex: abs(segment.type.hashValue))
         case .byLength:
             return colorForLength(segment.segment)
+        case .byDegree:
+            return colorForDegree(segment.segment)
+        case .byComponent:
+            return colorForComponent(segment.segment)
         }
     }
 
@@ -84,6 +90,30 @@ struct LineSegmentsDemoView: DemoView {
         let t = range > 0 ? (length - minLength) / range : 0
 
         return shortColor.mix(with: longColor, by: t)
+    }
+
+    private func colorForDegree(_ segment: LineSegment) -> Color {
+        // Color by max degree of the two endpoints
+        let g = graph
+        let startDegree = g.neighbors(of: segment.start).count
+        let endDegree = g.neighbors(of: segment.end).count
+        let maxDegree = max(startDegree, endDegree)
+        return Color(glasbeyIndex: maxDegree)
+    }
+
+    private func colorForComponent(_ segment: LineSegment) -> Color {
+        // Color by connected component
+        let g = graph
+        let components = g.connectedComponentsOfEdges()
+        for (index, componentEdges) in components.enumerated() {
+            for edge in componentEdges {
+                if (edge.from == segment.start && edge.to == segment.end) ||
+                   (edge.from == segment.end && edge.to == segment.start) {
+                    return Color(glasbeyIndex: index)
+                }
+            }
+        }
+        return .black
     }
 
     private var segmentsAsCSV: String {
