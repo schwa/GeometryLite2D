@@ -217,6 +217,61 @@ struct GraphDemoView: DemoView {
         }
     }
 
+    @ViewBuilder
+    private var colorKeyView: some View {
+        switch colorMode {
+        case .none:
+            EmptyView()
+        case .byID:
+            colorKeyList(title: "By ID", items: segments.map { (displayID(for: $0.id), Color(glasbeyIndex: abs($0.id.hashValue))) })
+        case .byType:
+            let types = Set(segments.map(\.type)).sorted()
+            colorKeyList(title: "By Type", items: types.map { ($0, Color(glasbeyIndex: abs($0.hashValue))) })
+        case .byLength:
+            colorKeyList(title: "By Length", items: [("Short", shortColor), ("Long", longColor)])
+        case .byDegree:
+            let degrees = Set(segments.flatMap { seg in
+                [graph.neighbors(of: seg.segment.start).count, graph.neighbors(of: seg.segment.end).count]
+            }).sorted()
+            colorKeyList(title: "By Degree", items: degrees.map { ("\($0)", Color(glasbeyIndex: $0)) })
+        case .byComponent:
+            let componentCount = graph.connectedComponentsOfEdges().count
+            colorKeyList(title: "By Component", items: (0..<componentCount).map { ("Component \($0 + 1)", Color(glasbeyIndex: $0)) })
+        }
+    }
+
+    @ViewBuilder
+    private func colorKeyList(title: String, items: [(String, Color)]) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).fontWeight(.medium)
+            if items.count <= 10 {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    colorKeyRow(label: item.0, color: item.1)
+                }
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                            colorKeyRow(label: item.0, color: item.1)
+                        }
+                    }
+                }
+                .frame(maxHeight: 200)
+            }
+        }
+        .padding(8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 6))
+    }
+
+    private func colorKeyRow(label: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 12, height: 12)
+            Text(label)
+        }
+    }
+
     private let hitToleranceScreen: CGFloat = 10
 
     private func segmentAt(_ point: CGPoint) -> TypedLineSegment? {
@@ -328,10 +383,7 @@ struct GraphDemoView: DemoView {
         // Add 10% padding
         let paddedBBox = adjustedBBox.insetBy(dx: -width * 0.1, dy: -height * 0.1)
 
-        // Set region of interest to the padded bounding box
-        regionOfInterest = paddedBBox
-
-        // Calculate scale to fit the ROI in the view
+        // Calculate scale to fit the padded bbox in the view
         let scaleX = viewSize.width / paddedBBox.width
         let scaleY = viewSize.height / paddedBBox.height
         let newScale = min(scaleX, scaleY)
@@ -344,8 +396,11 @@ struct GraphDemoView: DemoView {
         scale = newScale
         lastScale = newScale
 
-        // Reset scroll to origin (content is now centered via ROI)
-        scrollPosition = ScrollPosition(point: .zero)
+        // Scroll to center the bbox in the view
+        // Convert bbox origin from world to screen coordinates
+        let screenX = (paddedBBox.minX - regionOfInterest.minX) * newScale
+        let screenY = (paddedBBox.minY - regionOfInterest.minY) * newScale
+        scrollPosition = ScrollPosition(point: CGPoint(x: screenX, y: screenY))
     }
 
     private var canvasTransform: CGAffineTransform {
@@ -369,6 +424,67 @@ struct GraphDemoView: DemoView {
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
             ZStack {
+                // Grid
+                Canvas { context, _ in
+                    context.concatenate(canvasTransform)
+
+                    let gridSize: CGFloat = 10
+                    let roi = regionOfInterest
+
+                    let startX = floor(roi.minX / gridSize) * gridSize
+                    let endX = ceil(roi.maxX / gridSize) * gridSize
+                    let startY = floor(roi.minY / gridSize) * gridSize
+                    let endY = ceil(roi.maxY / gridSize) * gridSize
+
+                    let lineWidth: CGFloat = 1 / scale
+
+                    // Draw vertical lines
+                    var x = startX
+                    while x <= endX {
+                        var path = Path()
+                        path.move(to: CGPoint(x: x, y: roi.minY))
+                        path.addLine(to: CGPoint(x: x, y: roi.maxY))
+
+                        let color: Color
+                        let intX = Int(x)
+                        if intX == 0 {
+                            color = .red.opacity(0.5)
+                        } else if intX % 100 == 0 {
+                            color = .gray.opacity(0.3)
+                        } else if intX % 50 == 0 {
+                            color = .gray.opacity(0.2)
+                        } else {
+                            color = .gray.opacity(0.1)
+                        }
+                        context.stroke(path, with: .color(color), lineWidth: lineWidth)
+                        x += gridSize
+                    }
+
+                    // Draw horizontal lines
+                    var y = startY
+                    while y <= endY {
+                        var path = Path()
+                        path.move(to: CGPoint(x: roi.minX, y: y))
+                        path.addLine(to: CGPoint(x: roi.maxX, y: y))
+
+                        let color: Color
+                        let intY = Int(y)
+                        if intY == 0 {
+                            color = .green.opacity(0.5)
+                        } else if intY % 100 == 0 {
+                            color = .gray.opacity(0.3)
+                        } else if intY % 50 == 0 {
+                            color = .gray.opacity(0.2)
+                        } else {
+                            color = .gray.opacity(0.1)
+                        }
+                        context.stroke(path, with: .color(color), lineWidth: lineWidth)
+                        y += gridSize
+                    }
+                }
+                .allowsHitTesting(false)
+
+                // Segments
                 Canvas { context, _ in
                     context.concatenate(canvasTransform)
 
@@ -451,6 +567,10 @@ struct GraphDemoView: DemoView {
             .padding(.vertical, 4)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4))
             .padding(.bottom, 8)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            colorKeyView
+                .padding(8)
         }
         .focusable()
         .copyable([segmentsAsCSV])
