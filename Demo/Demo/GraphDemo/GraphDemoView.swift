@@ -30,13 +30,29 @@ struct GraphDemoView: DemoView {
         case byComponent = "By Component"
     }
 
+    enum Tool: String, CaseIterable {
+        case select = "Select"
+        case insertLine = "Insert Line"
+    }
+
+    struct SnapOptions: OptionSet {
+        let rawValue: Int
+        static let endpoints = SnapOptions(rawValue: 1 << 0)
+        static let lines = SnapOptions(rawValue: 1 << 1)
+        static let grid = SnapOptions(rawValue: 1 << 2)
+    }
+
+    @State private var currentTool: Tool = .select
+    @State private var showInspector: Bool = true
+    @State private var snapOptions: SnapOptions = [.endpoints, .grid]
+
     @State private var segments: [TypedLineSegment] = [
         TypedLineSegment(id: "1", type: "primary", segment: LineSegment(start: [100, 100], end: [300, 100])),
         TypedLineSegment(id: "2", type: "secondary", segment: LineSegment(start: [100, 150], end: [300, 200])),
         TypedLineSegment(id: "3", type: "primary", segment: LineSegment(start: [150, 50], end: [150, 100])) // T-junction with segment 1
     ]
 
-    @State private var snappingEnabled = false
+    @State private var optionKeyDown = false
     @State private var shiftKeyDown = false
     @State private var colorMode: ColorMode = .byType
     @State private var selection: Set<String> = []
@@ -201,19 +217,96 @@ struct GraphDemoView: DemoView {
         return result.isEmpty ? nil : result
     }
 
+    private var snapOptionsDescription: String {
+        var parts: [String] = []
+        if snapOptions.contains(.endpoints) { parts.append("Endpoints") }
+        if snapOptions.contains(.lines) { parts.append("Lines") }
+        if snapOptions.contains(.grid) { parts.append("Grid") }
+        return parts.joined(separator: ", ")
+    }
+
+    private var allEndpoints: [CGPoint] {
+        segments.flatMap { [$0.segment.start, $0.segment.end] }
+    }
+
+    private var allLineSegments: [LineSegment] {
+        segments.map(\.segment)
+    }
+
+    private static func nearestPointOnSegment(point: CGPoint, segment: LineSegment) -> CGPoint {
+        let dx = segment.end.x - segment.start.x
+        let dy = segment.end.y - segment.start.y
+        let lengthSquared = dx * dx + dy * dy
+
+        if lengthSquared == 0 {
+            return segment.start
+        }
+
+        let dotProduct = (point.x - segment.start.x) * dx + (point.y - segment.start.y) * dy
+        let t = max(0, min(1, dotProduct / lengthSquared))
+        return CGPoint(x: segment.start.x + t * dx, y: segment.start.y + t * dy)
+    }
+
+    private let gridSize: CGFloat = 10
+
     private var snapClosure: ((CGPoint, [CGPoint]) -> CGPoint)? {
-        guard snappingEnabled else { return nil }
-        return { point, targets in
-            var closest: CGPoint = point
-            var closestDistance: CGFloat = self.snapRadius
-            for target in targets {
-                let distance = hypot(target.x - point.x, target.y - point.y)
-                if distance < closestDistance {
-                    closest = target
-                    closestDistance = distance
+        // Option key suppresses snapping
+        guard !optionKeyDown, !snapOptions.isEmpty else { return nil }
+        // Capture current values
+        let options = snapOptions
+        let radius = snapRadius
+        let grid = gridSize
+        let lineSegments = allLineSegments
+        return { point, endpointTargets in
+            // Priority order: endpoints > lines > grid
+            // If we find a snap target at a higher priority level, use it
+
+            // 1. Snap to endpoints (highest priority)
+            if options.contains(.endpoints) {
+                var closestEndpoint: CGPoint?
+                var closestDistance: CGFloat = radius
+                for target in endpointTargets {
+                    let distance = hypot(target.x - point.x, target.y - point.y)
+                    if distance < closestDistance {
+                        closestEndpoint = target
+                        closestDistance = distance
+                    }
+                }
+                if let endpoint = closestEndpoint {
+                    return endpoint
                 }
             }
-            return closest
+
+            // 2. Snap to lines (medium priority)
+            if options.contains(.lines) {
+                var closestLinePoint: CGPoint?
+                var closestDistance: CGFloat = radius
+                for segment in lineSegments {
+                    let nearestPoint = Self.nearestPointOnSegment(point: point, segment: segment)
+                    let distance = hypot(nearestPoint.x - point.x, nearestPoint.y - point.y)
+                    if distance < closestDistance {
+                        closestLinePoint = nearestPoint
+                        closestDistance = distance
+                    }
+                }
+                if let linePoint = closestLinePoint {
+                    return linePoint
+                }
+            }
+
+            // 3. Snap to grid (lowest priority)
+            if options.contains(.grid) {
+                let gridPoint = CGPoint(
+                    x: (point.x / grid).rounded() * grid,
+                    y: (point.y / grid).rounded() * grid
+                )
+                let distance = hypot(gridPoint.x - point.x, gridPoint.y - point.y)
+                if distance < radius {
+                    return gridPoint
+                }
+            }
+
+            return point
         }
     }
 
@@ -428,13 +521,14 @@ struct GraphDemoView: DemoView {
                 Canvas { context, _ in
                     context.concatenate(canvasTransform)
 
-                    let gridSize: CGFloat = 10
+                    let minorGrid: CGFloat = 10
+                    let majorGrid: CGFloat = 100
                     let roi = regionOfInterest
 
-                    let startX = floor(roi.minX / gridSize) * gridSize
-                    let endX = ceil(roi.maxX / gridSize) * gridSize
-                    let startY = floor(roi.minY / gridSize) * gridSize
-                    let endY = ceil(roi.maxY / gridSize) * gridSize
+                    let startX = floor(roi.minX / minorGrid) * minorGrid
+                    let endX = ceil(roi.maxX / minorGrid) * minorGrid
+                    let startY = floor(roi.minY / minorGrid) * minorGrid
+                    let endY = ceil(roi.maxY / minorGrid) * minorGrid
 
                     let lineWidth: CGFloat = 1 / scale
 
@@ -449,15 +543,13 @@ struct GraphDemoView: DemoView {
                         let intX = Int(x)
                         if intX == 0 {
                             color = .red.opacity(0.5)
-                        } else if intX % 100 == 0 {
+                        } else if intX % Int(majorGrid) == 0 {
                             color = .gray.opacity(0.3)
-                        } else if intX % 50 == 0 {
-                            color = .gray.opacity(0.2)
                         } else {
                             color = .gray.opacity(0.1)
                         }
                         context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                        x += gridSize
+                        x += minorGrid
                     }
 
                     // Draw horizontal lines
@@ -471,15 +563,13 @@ struct GraphDemoView: DemoView {
                         let intY = Int(y)
                         if intY == 0 {
                             color = .green.opacity(0.5)
-                        } else if intY % 100 == 0 {
+                        } else if intY % Int(majorGrid) == 0 {
                             color = .gray.opacity(0.3)
-                        } else if intY % 50 == 0 {
-                            color = .gray.opacity(0.2)
                         } else {
                             color = .gray.opacity(0.1)
                         }
                         context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                        y += gridSize
+                        y += minorGrid
                     }
                 }
                 .allowsHitTesting(false)
@@ -524,14 +614,21 @@ struct GraphDemoView: DemoView {
             }
             .frame(width: contentSize.width, height: contentSize.height)
             .contentShape(Rectangle())
-            .selectable(
+            .modifier(ToolModifier(
+                tool: currentTool,
                 selection: $selection,
-                items: segments,
-                itemRect: segmentBoundingRect,
-                hitTest: segmentAt,
+                segments: segments,
+                segmentBoundingRect: segmentBoundingRect,
+                segmentAt: segmentAt,
                 transform: canvasTransform,
-                shiftKeyDown: shiftKeyDown
-            )
+                shiftKeyDown: shiftKeyDown,
+                snapTargets: allEndpoints,
+                snap: snapClosure,
+                onInsertLine: { line in
+                    let newID = UUID().uuidString
+                    segments.append(TypedLineSegment(id: newID, type: "primary", segment: line))
+                }
+            ))
             .gesture(
                 MagnifyGesture()
                     .onChanged { value in
@@ -555,7 +652,9 @@ struct GraphDemoView: DemoView {
         .background(.white)
         .overlay(alignment: .bottom) {
             HStack(spacing: 12) {
-                Text("Snapping (⌥): \(snappingEnabled ? "On" : "Off")")
+                if !snapOptions.isEmpty {
+                    Text("Snap: \(snapOptionsDescription)\(optionKeyDown ? " (⌥ suppressed)" : "")")
+                }
                 if scale != 1.0 {
                     Text("Zoom: \(scale * 100, specifier: "%.0f")%")
                 }
@@ -593,7 +692,7 @@ struct GraphDemoView: DemoView {
             return true
         }
         .onModifierKeysChanged { _, new in
-            snappingEnabled = new.contains(.option)
+            optionKeyDown = new.contains(.option)
             shiftKeyDown = new.contains(.shift)
         }
         .onGeometryChange(for: CGSize.self) { proxy in
@@ -602,6 +701,14 @@ struct GraphDemoView: DemoView {
             viewSize = newSize
         }
         .toolbar {
+            ToolbarItem {
+                Picker("Tool", selection: $currentTool) {
+                    ForEach(Tool.allCases, id: \.self) { tool in
+                        Text(tool.rawValue).tag(tool)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
             ToolbarItem {
                 Picker("Color", selection: $colorMode) {
                     ForEach(ColorMode.allCases, id: \.self) { mode in
@@ -628,6 +735,24 @@ struct GraphDemoView: DemoView {
                 }
             }
             ToolbarItem {
+                Menu {
+                    Toggle("Endpoints", isOn: Binding(
+                        get: { snapOptions.contains(.endpoints) },
+                        set: { if $0 { snapOptions.insert(.endpoints) } else { snapOptions.remove(.endpoints) } }
+                    ))
+                    Toggle("Lines", isOn: Binding(
+                        get: { snapOptions.contains(.lines) },
+                        set: { if $0 { snapOptions.insert(.lines) } else { snapOptions.remove(.lines) } }
+                    ))
+                    Toggle("Grid", isOn: Binding(
+                        get: { snapOptions.contains(.grid) },
+                        set: { if $0 { snapOptions.insert(.grid) } else { snapOptions.remove(.grid) } }
+                    ))
+                } label: {
+                    Label("Snap", systemImage: "magnet")
+                }
+            }
+            ToolbarItem {
                 Button {
                     zoomToFit(viewSize: viewSize)
                 } label: {
@@ -646,8 +771,15 @@ struct GraphDemoView: DemoView {
                     Label("Reset View", systemImage: "arrow.counterclockwise")
                 }
             }
+            ToolbarItem {
+                Button {
+                    showInspector.toggle()
+                } label: {
+                    Label("Inspector", systemImage: "sidebar.trailing")
+                }
+            }
         }
-        .inspector(isPresented: .constant(true)) {
+        .inspector(isPresented: $showInspector) {
             InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest, graph: graph, shortIDs: shortIDs)
         }
         .onAppear {
@@ -655,6 +787,42 @@ struct GraphDemoView: DemoView {
         }
         .onChange(of: segments) {
             regenerateShortIDs()
+        }
+    }
+}
+
+// MARK: - ToolModifier
+
+private struct ToolModifier: ViewModifier {
+    let tool: GraphDemoView.Tool
+    @Binding var selection: Set<String>
+    let segments: [GraphDemoView.TypedLineSegment]
+    let segmentBoundingRect: (GraphDemoView.TypedLineSegment) -> CGRect
+    let segmentAt: (CGPoint) -> GraphDemoView.TypedLineSegment?
+    let transform: CGAffineTransform
+    let shiftKeyDown: Bool
+    let snapTargets: [CGPoint]
+    let snap: ((CGPoint, [CGPoint]) -> CGPoint)?
+    let onInsertLine: (LineSegment) -> Void
+
+    func body(content: Content) -> some View {
+        switch tool {
+        case .select:
+            content.selectable(
+                selection: $selection,
+                items: segments,
+                itemRect: segmentBoundingRect,
+                hitTest: segmentAt,
+                transform: transform,
+                shiftKeyDown: shiftKeyDown
+            )
+        case .insertLine:
+            content.insertLineTool(
+                transform: transform,
+                snapTargets: snapTargets,
+                snap: snap,
+                onInsert: onInsertLine
+            )
         }
     }
 }
