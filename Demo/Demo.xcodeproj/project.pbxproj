@@ -13,6 +13,7 @@
 		45CB41922E4FA72E008591D8 /* Geometry in Frameworks */ = {isa = PBXBuildFile; productRef = 45CB41912E4FA72E008591D8 /* Geometry */; };
 		45CB41942E4FA72E008591D8 /* Interaction in Frameworks */ = {isa = PBXBuildFile; productRef = 45CB41932E4FA72E008591D8 /* Interaction */; };
 		45CB41962E4FA72E008591D8 /* Visualization in Frameworks */ = {isa = PBXBuildFile; productRef = 45CB41952E4FA72E008591D8 /* Visualization */; };
+		45E9CF322F183B09004088EE /* SwiftFormats in Frameworks */ = {isa = PBXBuildFile; productRef = 45E9CF312F183B09004088EE /* SwiftFormats */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4598D01C2EFC7A5400E62214 /* DemoKit in Frameworks */,
+				45E9CF322F183B09004088EE /* SwiftFormats in Frameworks */,
 				45CB41922E4FA72E008591D8 /* Geometry in Frameworks */,
 				4598D0232EFC7DA900E62214 /* GeometryCollections in Frameworks */,
 				4598D0252EFC7DA900E62214 /* Thicken in Frameworks */,
@@ -94,6 +96,7 @@
 				4598D01B2EFC7A5400E62214 /* DemoKit */,
 				4598D0222EFC7DA900E62214 /* GeometryCollections */,
 				4598D0242EFC7DA900E62214 /* Thicken */,
+				45E9CF312F183B09004088EE /* SwiftFormats */,
 			);
 			productName = Demo;
 			productReference = 456405892E4FA6C000D1B199 /* Demo.app */;
@@ -126,6 +129,7 @@
 			packageReferences = (
 				45CB41902E4FA72E008591D8 /* XCLocalSwiftPackageReference "../../GeometryLite2D" */,
 				4598D01A2EFC7A5400E62214 /* XCRemoteSwiftPackageReference "DemoKit" */,
+				45E9CF302F183B09004088EE /* XCRemoteSwiftPackageReference "SwiftFormats" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4564058A2E4FA6C000D1B199 /* Products */;
@@ -401,6 +405,14 @@
 				minimumVersion = 0.1.1;
 			};
 		};
+		45E9CF302F183B09004088EE /* XCRemoteSwiftPackageReference "SwiftFormats" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/schwa/SwiftFormats";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -430,6 +442,11 @@
 		45CB41952E4FA72E008591D8 /* Visualization */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Visualization;
+		};
+		45E9CF312F183B09004088EE /* SwiftFormats */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 45E9CF302F183B09004088EE /* XCRemoteSwiftPackageReference "SwiftFormats" */;
+			productName = SwiftFormats;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
