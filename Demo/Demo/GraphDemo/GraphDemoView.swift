@@ -468,6 +468,29 @@ struct GraphDemoView: DemoView {
         }
     }
 
+    private func fitRegionOfInterestToContent() {
+        guard let bbox = segmentsBoundingBox else { return }
+
+        // Handle zero-size cases
+        let width = max(bbox.width, 1)
+        let height = max(bbox.height, 1)
+
+        // Add 10% padding on each side
+        let paddedBBox = CGRect(
+            x: bbox.minX - width * 0.1,
+            y: bbox.minY - height * 0.1,
+            width: width * 1.2,
+            height: height * 1.2
+        )
+
+        regionOfInterest = paddedBBox
+        scale = 1.0
+        lastScale = 1.0
+        rotation = .zero
+        lastRotation = .zero
+        scrollPosition = ScrollPosition(point: .zero)
+    }
+
     private func zoomToFit(viewSize: CGSize) {
         guard let bbox = segmentsBoundingBox else { return }
 
@@ -704,6 +727,7 @@ struct GraphDemoView: DemoView {
             if let parsed = parseCSV(csv) {
                 segments = parsed
                 selection.removeAll()
+                fitRegionOfInterestToContent()
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
@@ -715,6 +739,7 @@ struct GraphDemoView: DemoView {
             }
             segments = parsed
             selection.removeAll()
+            fitRegionOfInterestToContent()
             return true
         }
         .onModifierKeysChanged { _, new in
