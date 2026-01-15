@@ -64,6 +64,12 @@ struct GraphDemoView: DemoView {
     // Region of interest - the world coordinate space we're viewing
     @State private var regionOfInterest: CGRect = CGRect(x: 0, y: 0, width: 1000, height: 1000)
 
+    // Grid settings
+    @State private var minorGridSpacing: CGFloat = 10
+    @State private var majorGridSpacing: CGFloat = 100
+    @State private var minorGridColor: Color = .gray.opacity(0.1)
+    @State private var majorGridColor: Color = .gray.opacity(0.3)
+
     // View transform state
     @State private var scale: CGFloat = 1.0
     @State private var rotation: Angle = .zero
@@ -250,15 +256,16 @@ struct GraphDemoView: DemoView {
         return CGPoint(x: segment.start.x + t * dx, y: segment.start.y + t * dy)
     }
 
-    private let gridSize: CGFloat = 10
+
 
     private var snapClosure: ((CGPoint, [CGPoint]) -> CGPoint)? {
         // Option key suppresses snapping
         guard !optionKeyDown, !snapOptions.isEmpty else { return nil }
         // Capture current values
         let options = snapOptions
-        let radius = snapRadius
-        let grid = gridSize
+        // Convert screen-space snap radius to world space
+        let radius = snapRadius / scale
+        let grid = minorGridSpacing
         let lineSegments = allLineSegments
         return { point, endpointTargets in
             // Priority order: endpoints > lines > grid
@@ -542,58 +549,94 @@ struct GraphDemoView: DemoView {
 
     @ViewBuilder
     private var gridCanvas: some View {
-        Canvas { context, _ in
-            context.concatenate(canvasTransform)
-
-            let minorGrid: CGFloat = 10
-            let majorGrid: CGFloat = 100
+        Canvas { context, size in
             let roi = regionOfInterest
-
-            let startX = floor(roi.minX / minorGrid) * minorGrid
-            let endX = ceil(roi.maxX / minorGrid) * minorGrid
-            let startY = floor(roi.minY / minorGrid) * minorGrid
-            let endY = ceil(roi.maxY / minorGrid) * minorGrid
-
             let lineWidth: CGFloat = 1 / scale
 
-            // Draw vertical lines
-            var x = startX
-            while x <= endX {
-                var path = Path()
-                path.move(to: CGPoint(x: x, y: roi.minY))
-                path.addLine(to: CGPoint(x: x, y: roi.maxY))
+            let startX = floor(roi.minX / minorGridSpacing) * minorGridSpacing
+            let endX = ceil(roi.maxX / minorGridSpacing) * minorGridSpacing
+            let startY = floor(roi.minY / minorGridSpacing) * minorGridSpacing
+            let endY = ceil(roi.maxY / minorGridSpacing) * minorGridSpacing
 
-                let color: Color
-                let intX = Int(x)
-                if intX == 0 {
-                    color = .red.opacity(0.5)
-                } else if intX % Int(majorGrid) == 0 {
-                    color = .gray.opacity(0.3)
-                } else {
-                    color = .gray.opacity(0.1)
+            // Minor grid - use copy blend mode to avoid alpha accumulation
+            context.drawLayer { ctx in
+                ctx.concatenate(canvasTransform)
+                ctx.blendMode = .copy
+
+                var x = startX
+                while x <= endX {
+                    let intX = Int(x)
+                    if intX != 0 && intX % Int(majorGridSpacing) != 0 {
+                        var path = Path()
+                        path.move(to: CGPoint(x: x, y: roi.minY))
+                        path.addLine(to: CGPoint(x: x, y: roi.maxY))
+                        ctx.stroke(path, with: .color(minorGridColor), lineWidth: lineWidth)
+                    }
+                    x += minorGridSpacing
                 }
-                context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                x += minorGrid
+
+                var y = startY
+                while y <= endY {
+                    let intY = Int(y)
+                    if intY != 0 && intY % Int(majorGridSpacing) != 0 {
+                        var path = Path()
+                        path.move(to: CGPoint(x: roi.minX, y: y))
+                        path.addLine(to: CGPoint(x: roi.maxX, y: y))
+                        ctx.stroke(path, with: .color(minorGridColor), lineWidth: lineWidth)
+                    }
+                    y += minorGridSpacing
+                }
             }
 
-            // Draw horizontal lines
-            var y = startY
-            while y <= endY {
-                var path = Path()
-                path.move(to: CGPoint(x: roi.minX, y: y))
-                path.addLine(to: CGPoint(x: roi.maxX, y: y))
+            // Major grid
+            context.drawLayer { ctx in
+                ctx.concatenate(canvasTransform)
+                ctx.blendMode = .copy
 
-                let color: Color
-                let intY = Int(y)
-                if intY == 0 {
-                    color = .green.opacity(0.5)
-                } else if intY % Int(majorGrid) == 0 {
-                    color = .gray.opacity(0.3)
-                } else {
-                    color = .gray.opacity(0.1)
+                var x = startX
+                while x <= endX {
+                    let intX = Int(x)
+                    if intX != 0 && intX % Int(majorGridSpacing) == 0 {
+                        var path = Path()
+                        path.move(to: CGPoint(x: x, y: roi.minY))
+                        path.addLine(to: CGPoint(x: x, y: roi.maxY))
+                        ctx.stroke(path, with: .color(majorGridColor), lineWidth: lineWidth)
+                    }
+                    x += minorGridSpacing
                 }
-                context.stroke(path, with: .color(color), lineWidth: lineWidth)
-                y += minorGrid
+
+                var y = startY
+                while y <= endY {
+                    let intY = Int(y)
+                    if intY != 0 && intY % Int(majorGridSpacing) == 0 {
+                        var path = Path()
+                        path.move(to: CGPoint(x: roi.minX, y: y))
+                        path.addLine(to: CGPoint(x: roi.maxX, y: y))
+                        ctx.stroke(path, with: .color(majorGridColor), lineWidth: lineWidth)
+                    }
+                    y += minorGridSpacing
+                }
+            }
+
+            // Axis lines (X=0 red, Y=0 green)
+            context.drawLayer { ctx in
+                ctx.concatenate(canvasTransform)
+
+                // Y axis (X=0)
+                if roi.minX <= 0 && roi.maxX >= 0 {
+                    var path = Path()
+                    path.move(to: CGPoint(x: 0, y: roi.minY))
+                    path.addLine(to: CGPoint(x: 0, y: roi.maxY))
+                    ctx.stroke(path, with: .color(.red.opacity(0.5)), lineWidth: lineWidth)
+                }
+
+                // X axis (Y=0)
+                if roi.minY <= 0 && roi.maxY >= 0 {
+                    var path = Path()
+                    path.move(to: CGPoint(x: roi.minX, y: 0))
+                    path.addLine(to: CGPoint(x: roi.maxX, y: 0))
+                    ctx.stroke(path, with: .color(.green.opacity(0.5)), lineWidth: lineWidth)
+                }
             }
         }
         .allowsHitTesting(false)
@@ -652,16 +695,22 @@ struct GraphDemoView: DemoView {
 
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
-            ZStack {
+            ZStack(alignment: .topLeading) {
+                // Grid - constrained to ROI
                 Color.white
+                    .frame(width: contentSize.width, height: contentSize.height)
                 gridCanvas
+                    .frame(width: contentSize.width, height: contentSize.height)
+
+                // Content - clips to contentSize for now
                 if showThickened {
                     thickenedCanvas
                 }
                 segmentsCanvas
                 InteractiveCanvas(elements: $segments, id: \.id, snap: snapClosure, transform: canvasTransform)
+                    .id(canvasTransform)
             }
-            .frame(width: contentSize.width, height: contentSize.height)
+            .frame(width: contentSize.width, height: contentSize.height, alignment: .topLeading)
             .contentShape(Rectangle())
             .modifier(ToolModifier(
                 tool: currentTool,
@@ -809,7 +858,19 @@ struct GraphDemoView: DemoView {
             }
         }
         .inspector(isPresented: $showInspector) {
-            InspectorView(segments: $segments, selection: $selection, contentBoundingBox: segmentsBoundingBox, regionOfInterest: regionOfInterest, graph: graph, shortIDs: shortIDs)
+            InspectorView(
+                segments: $segments,
+                selection: $selection,
+                contentBoundingBox: segmentsBoundingBox,
+                regionOfInterest: $regionOfInterest,
+                snapOptions: $snapOptions,
+                minorGridSpacing: $minorGridSpacing,
+                majorGridSpacing: $majorGridSpacing,
+                minorGridColor: $minorGridColor,
+                majorGridColor: $majorGridColor,
+                graph: graph,
+                shortIDs: shortIDs
+            )
         }
         .onAppear {
             regenerateShortIDs()
@@ -817,6 +878,15 @@ struct GraphDemoView: DemoView {
         .onChange(of: segments) {
             regenerateShortIDs()
         }
+    }
+}
+
+// MARK: - CGFloat Double Extension
+
+extension CGFloat {
+    var double: Double {
+        get { Double(self) }
+        set { self = CGFloat(newValue) }
     }
 }
 
@@ -952,7 +1022,12 @@ private struct InspectorView: View {
     @Binding var segments: [GraphDemoView.TypedLineSegment]
     @Binding var selection: Set<String>
     var contentBoundingBox: CGRect?
-    var regionOfInterest: CGRect
+    @Binding var regionOfInterest: CGRect
+    @Binding var snapOptions: GraphDemoView.SnapOptions
+    @Binding var minorGridSpacing: CGFloat
+    @Binding var majorGridSpacing: CGFloat
+    @Binding var minorGridColor: Color
+    @Binding var majorGridColor: Color
     var graph: UndirectedGraph<CGPoint>
     var shortIDs: [AnyHashable: Int]
 
@@ -997,7 +1072,48 @@ private struct InspectorView: View {
     private var canvasInfoForm: some View {
         Form {
             Section("Region of Interest") {
-                Text(regionOfInterest.formatted())
+                LabeledContent("X") {
+                    TextField("", value: $regionOfInterest.origin.x.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+                LabeledContent("Y") {
+                    TextField("", value: $regionOfInterest.origin.y.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+                LabeledContent("Width") {
+                    TextField("", value: $regionOfInterest.size.width.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+                LabeledContent("Height") {
+                    TextField("", value: $regionOfInterest.size.height.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+            }
+            Section("Snap To") {
+                Toggle("Endpoints", isOn: Binding(
+                    get: { snapOptions.contains(.endpoints) },
+                    set: { if $0 { snapOptions.insert(.endpoints) } else { snapOptions.remove(.endpoints) } }
+                ))
+                Toggle("Lines", isOn: Binding(
+                    get: { snapOptions.contains(.lines) },
+                    set: { if $0 { snapOptions.insert(.lines) } else { snapOptions.remove(.lines) } }
+                ))
+                Toggle("Grid", isOn: Binding(
+                    get: { snapOptions.contains(.grid) },
+                    set: { if $0 { snapOptions.insert(.grid) } else { snapOptions.remove(.grid) } }
+                ))
+            }
+            Section("Grid") {
+                LabeledContent("Minor Spacing") {
+                    TextField("", value: $minorGridSpacing.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+                LabeledContent("Major Spacing") {
+                    TextField("", value: $majorGridSpacing.double, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+                ColorPicker("Minor Color", selection: $minorGridColor)
+                ColorPicker("Major Color", selection: $majorGridColor)
             }
             Section("Content Bounding Box") {
                 if let bbox = contentBoundingBox {
@@ -1008,6 +1124,7 @@ private struct InspectorView: View {
                 }
             }
         }
+        .formStyle(.grouped)
     }
 
     private var graphInfoForm: some View {

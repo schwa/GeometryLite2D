@@ -35,7 +35,6 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
     }
 
     public var body: some View {
-        let inverseTransform = transform.inverted()
         ZStack {
             ForEach(Array(handles), id: \.key) { elementID, elementHandles in
                 ForEach(Array(elementHandles), id: \.key) { handleID, _ in
@@ -45,7 +44,7 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
                             return modelPosition.applying(transform)
                         },
                         set: { screenPosition in
-                            let modelPosition = screenPosition.applying(inverseTransform)
+                            let modelPosition = screenPosition.applying(transform.inverted())
                             if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
                                 // Update handle position in state
                                 self.handles[elementID]?[handleID]?.position = modelPosition
@@ -62,7 +61,12 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
                     )
                     let snapTargets = allHandlePositions(excluding: elementID, handleID: handleID)
                     let snapClosure: ((CGPoint) -> CGPoint)? = snap.map { snap in
-                        { point in snap(point, snapTargets) }
+                        { screenPoint in
+                            // Convert screen point to world, snap in world space, convert back to screen
+                            let worldPoint = screenPoint.applying(transform.inverted())
+                            let snappedWorld = snap(worldPoint, snapTargets)
+                            return snappedWorld.applying(transform)
+                        }
                     }
                     DragHandle(position: binding, snap: snapClosure)
                 }
