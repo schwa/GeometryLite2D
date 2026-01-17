@@ -179,6 +179,20 @@ public extension Polygon {
     }
 }
 
+// MARK: - Edge Operations
+
+public extension Polygon {
+    /// Returns true if the line segment crosses any edge of the polygon (not just touches).
+    func edgesCross(_ segment: LineSegment) -> Bool {
+        for edge in segments {
+            if segment.crossingPoint(with: edge) != nil {
+                return true
+            }
+        }
+        return false
+    }
+}
+
 // MARK: - Simplification
 
 public extension Polygon {

@@ -82,6 +82,18 @@ public extension CGPoint {
     func angle(to other: CGPoint) -> CGFloat {
         atan2(other.y - y, other.x - x)
     }
+    
+    /// Rotates this point around a center point by the given angle
+    func rotated(around center: CGPoint, by angle: Angle) -> CGPoint {
+        let cosAngle = cos(angle.radians)
+        let sinAngle = sin(angle.radians)
+        let dx = x - center.x
+        let dy = y - center.y
+        return CGPoint(
+            x: center.x + dx * cosAngle - dy * sinAngle,
+            y: center.y + dx * sinAngle + dy * cosAngle
+        )
+    }
 
     /// Calculate the distance from this point to a line segment
     func distance(to segment: LineSegment) -> CGFloat {

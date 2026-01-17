@@ -137,6 +137,92 @@ public extension LineSegment {
         // If either segment is fully contained in the other, they overlap
         return (thisStartOnOther && thisEndOnOther) || (otherStartOnThis && otherEndOnThis)
     }
+    
+    /// Returns the intersection point if the segments cross each other (not at endpoints).
+    /// Returns nil if segments don't intersect or only touch at endpoints.
+    func crossingPoint(with other: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> CGPoint? {
+        let p = start
+        let q = other.start
+        let r = end - start
+        let s = other.end - other.start
+
+        let rxs = r.cross(s)
+
+        // Parallel segments don't cross
+        if rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) {
+            return nil
+        }
+
+        let t = (q - p).cross(s) / rxs
+        let u = (q - p).cross(r) / rxs
+
+        // Check if intersection is strictly inside both segments (not at endpoints)
+        if t > absoluteTolerance && t < 1 - absoluteTolerance && u > absoluteTolerance && u < 1 - absoluteTolerance {
+            return CGPoint(x: p.x + t * r.x, y: p.y + t * r.y)
+        }
+        
+        return nil
+    }
+    
+    /// Returns the intersection point of a ray with this segment, or nil if no intersection.
+    /// The ray starts at `origin` and passes through `through`.
+    func rayIntersection(origin: CGPoint, through: CGPoint, absoluteTolerance: CGFloat = 1e-10) -> CGPoint? {
+        let d = (origin.x - through.x) * (start.y - end.y) - (origin.y - through.y) * (start.x - end.x)
+        guard !d.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else { return nil } // Parallel
+        
+        let t = ((origin.x - start.x) * (start.y - end.y) - (origin.y - start.y) * (start.x - end.x)) / d
+        let u = -((origin.x - through.x) * (origin.y - start.y) - (origin.y - through.y) * (origin.x - start.x)) / d
+        
+        // t >= 0 means intersection is in the ray direction (not behind)
+        // 0 <= u <= 1 means intersection is on the segment
+        guard t >= 0 && u >= 0 && u <= 1 else { return nil }
+        
+        return CGPoint(
+            x: origin.x + t * (through.x - origin.x),
+            y: origin.y + t * (through.y - origin.y)
+        )
+    }
+    
+    /// Returns true if this segment is collinear with and overlaps the other segment.
+    /// The segments must share part of their length (not just touch at a single point).
+    func isCollinearAndOverlaps(with other: LineSegment, absoluteTolerance: CGFloat = 1e-5) -> Bool {
+        let p = start
+        let q = other.start
+        let r = end - start
+        let s = other.end - other.start
+
+        let rxs = r.cross(s)
+        let qpxr = (q - p).cross(r)
+
+        // Check if lines are parallel
+        guard rxs.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else {
+            return false
+        }
+        
+        // Check if they are collinear
+        guard qpxr.isApproximatelyEqual(to: 0, absoluteTolerance: absoluteTolerance) else {
+            return false
+        }
+        
+        // They are collinear - check for overlap
+        let rDotR = r.dot(r)
+        guard rDotR > absoluteTolerance else {
+            // Degenerate segment (point)
+            return other.contains(p, absoluteTolerance: absoluteTolerance)
+        }
+        
+        let t0 = (q - p).dot(r) / rDotR
+        let t1 = t0 + s.dot(r) / rDotR
+        
+        let tMin = min(t0, t1)
+        let tMax = max(t0, t1)
+        
+        // Check for actual overlap (more than just touching at a point)
+        let overlapStart = max(0, tMin)
+        let overlapEnd = min(1, tMax)
+        
+        return overlapEnd - overlapStart > absoluteTolerance
+    }
 }
 
 // MARK: -
