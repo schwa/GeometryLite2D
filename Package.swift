@@ -13,7 +13,8 @@ let package = Package(
         .library(name: "GeometryCollections", targets: ["GeometryCollections"]),
         .library(name: "Interaction", targets: ["Interaction"]),
         .library(name: "Visualization", targets: ["Visualization"]),
-        .library(name: "Thicken", targets: ["Thicken"])
+        .library(name: "Thicken", targets: ["Thicken"]),
+        .library(name: "Voronoi", targets: ["Voronoi"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.0"),
@@ -42,7 +43,12 @@ let package = Package(
             name: "Thicken",
             dependencies: ["Geometry", "GeometryCollections"]
         ),
+        .target(
+            name: "Voronoi",
+            dependencies: ["Geometry"]
+        ),
         .testTarget(name: "GeometryTests", dependencies: ["Geometry", "GeometryCollections"]),
-        .testTarget(name: "ThickenTests", dependencies: ["Thicken", "Geometry"])
+        .testTarget(name: "ThickenTests", dependencies: ["Thicken", "Geometry"]),
+        .testTarget(name: "VoronoiTests", dependencies: ["Voronoi", "Geometry"])
     ]
 )
