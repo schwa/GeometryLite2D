@@ -1,8 +1,8 @@
 import CoreGraphics
 
 public struct UndirectedLineSegment {
-    let v0: CGPoint
-    let v1: CGPoint
+    public let v0: CGPoint
+    public let v1: CGPoint
 
     public init(v0: CGPoint, v1: CGPoint) {
         if v0.compare(to: v1, using: .yThenX) == .orderedAscending {

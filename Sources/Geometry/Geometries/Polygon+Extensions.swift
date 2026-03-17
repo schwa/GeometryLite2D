@@ -141,6 +141,66 @@ public extension Polygon {
 // MARK: - Initializers from Edges
 
 public extension Polygon {
+    /// Creates a polygon from line segments that form a closed loop (undirected).
+    /// Each point must connect to exactly two segments.
+    init?(segments: [LineSegment]) {
+        guard !segments.isEmpty else {
+            return nil
+        }
+
+        // Build adjacency map (undirected)
+        var adjacency: [CGPoint: [LineSegment]] = [:]
+        for segment in segments {
+            adjacency[segment.start, default: []].append(segment)
+            adjacency[segment.end, default: []].append(segment)
+        }
+
+        // Each point must connect to exactly two segments
+        for (_, connectedSegments) in adjacency {
+            if connectedSegments.count != 2 {
+                return nil
+            }
+        }
+
+        // Walk the segments to build ordered vertices
+        var orderedPoints: [CGPoint] = []
+        var usedSegments: Set<LineSegment> = []
+        var currentSegment = segments[0]
+        var currentPoint = currentSegment.start
+        orderedPoints.append(currentPoint)
+
+        while usedSegments.count < segments.count {
+            usedSegments.insert(currentSegment)
+            let nextPoint = currentSegment.start == currentPoint ? currentSegment.end : currentSegment.start
+
+            if nextPoint == orderedPoints[0] {
+                break
+            }
+
+            orderedPoints.append(nextPoint)
+
+            let connectedSegments = adjacency[nextPoint] ?? []
+            let unusedConnectedSegments = connectedSegments.filter { !usedSegments.contains($0) }
+
+            if unusedConnectedSegments.isEmpty {
+                return nil
+            }
+
+            currentSegment = unusedConnectedSegments[0]
+            currentPoint = nextPoint
+        }
+
+        if usedSegments.count < segments.count {
+            return nil
+        }
+
+        guard orderedPoints.count >= 3 else {
+            return nil
+        }
+
+        self.init(orderedPoints)
+    }
+
     init?(edges: some Collection<LineSegment>) {
         let edges = Set(edges)
         self.init(edges: edges)

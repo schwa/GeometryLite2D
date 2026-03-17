@@ -124,6 +124,11 @@ public extension CGPoint {
         return a * d - b * c
     }
 
+    /// Returns true if three points are in counter-clockwise order.
+    static func isCounterClockwise(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> Bool {
+        cross(a, b, c) > 0
+    }
+
     static func areColinear(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint, absoluteTolerance: CGFloat = 1e-6) -> Bool {
         // Compute the area of the triangle formed by the three points using the shoelace formula.
         let area = abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y))

@@ -17,15 +17,15 @@ public func delaunayTriangulation(_ points: [CGPoint], superTriangle: Triangle? 
         var badTriangles: Set<Triangle> = []
 
         for triangle in triangulation {
-            if triangle.circumcircle?.contains(point) ?? false {
+            if let circumcircle = triangle.circumcircle, circumcircle.contains(point) {
                 badTriangles.insert(triangle)
             }
         }
 
-        var edgeCount: [TriangulationEdge: Int] = [:]
+        var edgeCount: [UndirectedLineSegment: Int] = [:]
         for triangle in badTriangles {
             for edge in triangle.edges {
-                edgeCount[edge.ordered, default: 0] += 1
+                edgeCount[edge, default: 0] += 1
             }
         }
 
@@ -37,10 +37,10 @@ public func delaunayTriangulation(_ points: [CGPoint], superTriangle: Triangle? 
 
         for edge in polygonEdges {
             let newTriangle: Triangle
-            if isCounterClockwise(edge.a, edge.b, point) {
-                newTriangle = Triangle(a: edge.a, b: edge.b, c: point)
+            if CGPoint.isCounterClockwise(edge.v0, edge.v1, point) {
+                newTriangle = Triangle(a: edge.v0, b: edge.v1, c: point)
             } else {
-                newTriangle = Triangle(a: edge.b, b: edge.a, c: point)
+                newTriangle = Triangle(a: edge.v1, b: edge.v0, c: point)
             }
             triangulation.insert(newTriangle)
         }
@@ -93,9 +93,4 @@ func makeSuperTriangle(from points: [CGPoint], scaleFactor: CGFloat = 1000) -> T
     let c = CGPoint(x: midX + scaleFactor * deltaMax, y: midY - deltaMax * 0.5)
 
     return Triangle(a: a, b: b, c: c)
-}
-
-/// Checks if three points are in counter-clockwise order
-func isCounterClockwise(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> Bool {
-    (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0
 }

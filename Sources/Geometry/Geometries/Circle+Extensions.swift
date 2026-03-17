@@ -1,5 +1,4 @@
 import CoreGraphics
-import Geometry
 
 public extension Circle {
     /// Returns true if the circle contains the given point (including on the boundary).

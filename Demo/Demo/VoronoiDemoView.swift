@@ -41,7 +41,7 @@ struct VoronoiDemoView: DemoView {
 
     @State var triangles: [Triangle] = []
     @State var convexHullPoints: [CGPoint] = []
-    @State var voronoiEdges: [VoronoiEdge] = []
+    @State var voronoiEdgeList: [VoronoiEdge] = []
     @State var size: CGSize = .zero
     @State var zoom: CGFloat = 1.0
     @State var gestureZoom: CGFloat = 1.0
@@ -67,29 +67,23 @@ struct VoronoiDemoView: DemoView {
                 }
 
                 ForEach(Array(points.enumerated()), id: \.0) { index, point in
-                    Circle().frame(width: 10, height: 10)
-                        .foregroundColor(.black)
-                        .position(x: point.x * scale, y: point.y * scale)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    points[index] = CGPoint(
-                                        x: value.location.x / scale,
-                                        y: value.location.y / scale
-                                    )
-                                }
-                        )
-                        .contextMenu {
-                            Button("Delete") {
-                                points.remove(at: index)
-                            }
+                    DragHandle(position: Binding(
+                        get: { CGPoint(x: point.x * scale, y: point.y * scale) },
+                        set: { newValue in
+                            points[index] = CGPoint(x: newValue.x / scale, y: newValue.y / scale)
                         }
+                    ))
+                    .contextMenu {
+                        Button("Delete") {
+                            points.remove(at: index)
+                        }
+                    }
                 }
             }
             .onChange(of: points, initial: true) {
                 triangles = delaunayTriangulation(points)
                 convexHullPoints = Geometry.convexHull(points)
-                voronoiEdges = computeVoronoiEdges(from: triangles)
+                voronoiEdgeList = voronoiEdges(from: triangles)
             }
             .gesture(
                 MagnifyGesture()
@@ -97,7 +91,7 @@ struct VoronoiDemoView: DemoView {
                         gestureZoom = max(value.magnification, 0.01)
                     }
                     .onEnded { _ in
-                        zoom = gestureZoom
+                        zoom *= gestureZoom
                         gestureZoom = 1.0
                     }
             )
@@ -148,7 +142,7 @@ struct VoronoiDemoView: DemoView {
 
         // Draw Voronoi cells (colored regions)
         if options.drawVoronoiCells {
-            let polygons = computeInteriorVoronoiCells(points: points, edges: voronoiEdges, triangles: triangles)
+            let polygons = interiorVoronoiCells(points: points, edges: voronoiEdgeList, triangles: triangles)
             for (point, polygon) in polygons {
                 guard let polygon else { continue }
                 let path = polygon.makePath().applying(transform)
@@ -193,7 +187,7 @@ struct VoronoiDemoView: DemoView {
 
         // Draw Voronoi edges
         if options.drawVoronoi {
-            for edge in voronoiEdges {
+            for edge in voronoiEdgeList {
                 context.stroke(
                     Path(edge, maxRayLength: 1000).applying(transform),
                     with: .color(.blue),
@@ -201,19 +195,6 @@ struct VoronoiDemoView: DemoView {
                 )
             }
         }
-    }
-}
-
-// Helper to generate consistent colors from hashable values
-extension Color {
-    init(forHashable hashable: some Hashable) {
-        var hash = Hasher()
-        hashable.hash(into: &hash)
-        let value = hash.finalize()
-        let r = Double((value >> 16) & 0xFF) / 255
-        let g = Double((value >> 8) & 0xFF) / 255
-        let b = Double(value & 0xFF) / 255
-        self.init(red: r, green: g, blue: b)
     }
 }
 

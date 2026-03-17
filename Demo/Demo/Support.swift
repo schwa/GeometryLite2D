@@ -2,6 +2,21 @@ import Geometry
 import SwiftUI
 import Visualization
 
+// MARK: - Color from Hashable
+
+extension Color {
+    /// Creates a consistent color from any hashable value.
+    init(forHashable hashable: some Hashable) {
+        var hash = Hasher()
+        hashable.hash(into: &hash)
+        let value = hash.finalize()
+        let r = Double((value >> 16) & 0xFF) / 255
+        let g = Double((value >> 8) & 0xFF) / 255
+        let b = Double(value & 0xFF) / 255
+        self.init(red: r, green: g, blue: b)
+    }
+}
+
 extension Identified: @retroactive Equatable where Value: Equatable {
     public static func == (lhs: Identified, rhs: Identified) -> Bool {
         lhs.id == rhs.id && lhs.value == rhs.value

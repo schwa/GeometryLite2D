@@ -1,5 +1,6 @@
 import Testing
 import CoreGraphics
+import Geometry
 @testable import Voronoi
 
 @Test func testDelaunayTriangulationBasic() {
@@ -35,9 +36,9 @@ import CoreGraphics
     ]
 
     let triangles = delaunayTriangulation(points)
-    let voronoiEdges = computeVoronoiEdges(from: triangles)
+    let edges = voronoiEdges(from: triangles)
 
-    #expect(!voronoiEdges.isEmpty)
+    #expect(!edges.isEmpty)
 }
 
 @Test func testTriangleCircumcircle() {
@@ -56,4 +57,28 @@ import CoreGraphics
         #expect(circle.contains(triangle.b))
         #expect(circle.contains(triangle.c))
     }
+}
+
+@Test func testTriangleWinding() {
+    let ccw = Triangle(a: [0, 0], b: [1, 0], c: [0.5, 1])
+    #expect(ccw.winding == .counterClockwise)
+
+    let cw = Triangle(a: [0, 0], b: [0.5, 1], c: [1, 0])
+    #expect(cw.winding == .clockwise)
+
+    let colinear = Triangle(a: [0, 0], b: [1, 0], c: [2, 0])
+    #expect(colinear.winding == .colinear)
+}
+
+@Test func testCircleContains() {
+    let circle = Circle(center: [0, 0], radius: 1)
+    #expect(circle.contains([0, 0]))
+    #expect(circle.contains([0.5, 0.5]))
+    #expect(circle.contains([1, 0]))  // On boundary
+    #expect(!circle.contains([2, 0]))
+}
+
+@Test func testIsCounterClockwise() {
+    #expect(CGPoint.isCounterClockwise([0, 0], [1, 0], [0.5, 1]))
+    #expect(!CGPoint.isCounterClockwise([0, 0], [0.5, 1], [1, 0]))
 }

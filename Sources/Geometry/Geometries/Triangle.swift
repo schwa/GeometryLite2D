@@ -1,5 +1,4 @@
 import CoreGraphics
-import Geometry
 
 public struct Triangle: Equatable, Hashable, Sendable {
     public var a: CGPoint
@@ -60,11 +59,11 @@ public extension Triangle {
         return alpha > 0 && beta > 0 && gamma > 0
     }
 
-    var edges: [TriangulationEdge] {
+    var edges: [UndirectedLineSegment] {
         [
-            TriangulationEdge(a: a, b: b),
-            TriangulationEdge(a: b, b: c),
-            TriangulationEdge(a: c, b: a)
+            UndirectedLineSegment(v0: a, v1: b),
+            UndirectedLineSegment(v0: b, v1: c),
+            UndirectedLineSegment(v0: c, v1: a)
         ]
     }
 
@@ -97,8 +96,10 @@ public extension Triangle {
         let area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)
         if area > 0 {
             return .counterClockwise
-        } else {
+        } else if area < 0 {
             return .clockwise
+        } else {
+            return .colinear
         }
     }
 

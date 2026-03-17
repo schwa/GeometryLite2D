@@ -56,7 +56,7 @@ public extension VoronoiEdge {
 /// Computes the Voronoi diagram edges from a Delaunay triangulation.
 /// - Parameter triangles: The Delaunay triangulation triangles
 /// - Returns: Array of Voronoi edges
-public func computeVoronoiEdges(from triangles: [Triangle]) -> [VoronoiEdge] {
+public func voronoiEdges(from triangles: [Triangle]) -> [VoronoiEdge] {
     struct EdgeKey: Hashable {
         let p1: CGPoint
         let p2: CGPoint
@@ -88,8 +88,9 @@ public func computeVoronoiEdges(from triangles: [Triangle]) -> [VoronoiEdge] {
     var edgeToTriangles: [EdgeKey: [Int]] = [:]
 
     // Step 1: Compute circumcenters and map edges to triangle indices
-    for (index, triangle) in triangles.enumerated() {
+    for triangle in triangles {
         guard let circumcenter = triangle.circumcircle?.center else { continue }
+        let index = triangleInfos.count
         triangleInfos.append(TriangleInfo(triangle: triangle, circumcenter: circumcenter))
 
         let edges = [
@@ -99,7 +100,7 @@ public func computeVoronoiEdges(from triangles: [Triangle]) -> [VoronoiEdge] {
         ]
 
         for edge in edges {
-            edgeToTriangles[edge, default: []].append(triangleInfos.count - 1)
+            edgeToTriangles[edge, default: []].append(index)
         }
     }
 
@@ -155,7 +156,7 @@ public func computeVoronoiEdges(from triangles: [Triangle]) -> [VoronoiEdge] {
 ///   - voronoiEdges: The Voronoi diagram edges
 ///   - triangles: The Delaunay triangulation triangles
 /// - Returns: Dictionary mapping each site point to its Voronoi edges
-public func buildEdgesBySite(
+public func edgesBySite(
     from voronoiEdges: [VoronoiEdge],
     triangles: [Triangle]
 ) -> [CGPoint: [VoronoiEdge]] {
@@ -212,16 +213,16 @@ public struct VoronoiCell: Sendable {
 ///   - edges: The Voronoi edges
 ///   - triangles: The Delaunay triangulation triangles
 /// - Returns: Array of tuples containing site points and their cell polygons (nil if unbounded)
-public func computeInteriorVoronoiCells(
+public func interiorVoronoiCells(
     points: [CGPoint],
     edges: [VoronoiEdge],
     triangles: [Triangle]
 ) -> [(CGPoint, Polygon_?)] {
-    let edgesBySite = buildEdgesBySite(from: edges, triangles: triangles)
+    let siteEdges = edgesBySite(from: edges, triangles: triangles)
     return points.map { point in
-        let siteEdges = edgesBySite[point] ?? []
+        let pointEdges = siteEdges[point] ?? []
 
-        let cellEdges = siteEdges.filter {
+        let cellEdges = pointEdges.filter {
             $0.isSegment && $0.leftSite != point && $0.rightSite != point
         }.compactMap { edge -> LineSegment? in
             if case let .segment(segment) = edge.kind {
