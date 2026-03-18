@@ -1,4 +1,5 @@
 import Collections
+import OrderedCollections
 
 public extension GraphProtocol {
     func connectedComponentsOfEdges() -> [[Edge]] {

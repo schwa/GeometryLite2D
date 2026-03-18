@@ -1,4 +1,5 @@
 import Collections
+import OrderedCollections
 
 /// A minimal, reusable directed graph structure where edges and vertices are generic and hashable.
 public struct DirectedGraph<Vertex: Hashable> {

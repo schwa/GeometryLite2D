@@ -1,4 +1,6 @@
 import Collections
+import OrderedCollections
+import OrderedCollections
 
 public struct UndirectedValuedGraph<Vertex: Hashable, VertexValue, EdgeValue> {
     public typealias VertexValue = VertexValue
