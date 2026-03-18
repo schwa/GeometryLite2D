@@ -4,9 +4,9 @@ import Geometry
 
 public struct HalfEdgeMesh<ID: Hashable> {
     // Stable ids
-    public struct VertexID: Hashable { public let raw: Int }
-    public struct HalfEdgeID: Hashable { public let raw: Int }
-    public struct FaceID: Hashable { public let raw: Int }
+    public struct VertexID: Hashable, Sendable { public let raw: Int; public init(raw: Int) { self.raw = raw } }
+    public struct HalfEdgeID: Hashable, Sendable { public let raw: Int; public init(raw: Int) { self.raw = raw } }
+    public struct FaceID: Hashable, Sendable { public let raw: Int; public init(raw: Int) { self.raw = raw } }
 
     public struct Vertex {
         public let id: VertexID
@@ -28,8 +28,9 @@ public struct HalfEdgeMesh<ID: Hashable> {
 
     public struct Face {
         public let id: FaceID
-        public var edge: HalfEdgeID? // any boundary edge
-        public var signedArea: CGFloat? // computed after labeling
+        public var edge: HalfEdgeID? // outer boundary edge
+        public var holeEdges: [HalfEdgeID] = [] // one half-edge per hole loop
+        public var signedArea: CGFloat? // computed after labeling (outer boundary only)
     }
 
     public private(set) var vertices: [Vertex] = []
@@ -39,6 +40,105 @@ public struct HalfEdgeMesh<ID: Hashable> {
     // Build from clean segments (deduped, split at T's)
     public init(segments: [Identified<ID, LineSegment>]) {
         build(from: segments)
+    }
+
+    /// A face definition for building a mesh from indexed points.
+    public struct FaceDefinition {
+        public var outer: [Int]
+        public var holes: [[Int]]
+
+        public init(outer: [Int], holes: [[Int]] = []) {
+            self.outer = outer
+            self.holes = holes
+        }
+    }
+
+    /// Build from indexed points and face definitions (with optional holes).
+    ///
+    /// Vertex indices are preserved (mesh vertex N = points[N]).
+    /// The `ID` for each half-edge is the undirected edge index (sequential, shared by twin pairs).
+    public init(points: [CGPoint], faces faceDefinitions: [FaceDefinition]) where ID == Int {
+        // 1. Create vertices, preserving index order
+        vertices = points.enumerated().map { i, p in
+            Vertex(id: VertexID(raw: i), p: p, edge: nil)
+        }
+
+        // Map (origin, dest) -> halfEdgeID for twin linking
+        // Encode directed edge as origin * points.count + dest
+        let n = points.count
+        var edgeMap: [Int: HalfEdgeID] = [:]
+        var undirectedEdgeCount = 0
+
+        // Helper: create half-edges for a loop, assign them to fID, return first HE index
+        func buildLoop(_ loop: [Int], faceID fID: FaceID) -> HalfEdgeID? {
+            guard loop.count >= 3 else {
+                return nil
+            }
+            let firstHEIdx = halfEdges.count
+
+            for i in 0..<loop.count {
+                let originIdx = loop[i]
+                let destIdx = loop[(i + 1) % loop.count]
+                let heID = HalfEdgeID(raw: halfEdges.count)
+                let ang = points[originIdx].angle(to: points[destIdx])
+
+                let forwardKey = originIdx * n + destIdx
+                let reverseKey = destIdx * n + originIdx
+
+                let segID: Int
+                var twin: HalfEdgeID? = nil
+                if let twinID = edgeMap[reverseKey] {
+                    segID = halfEdges[twinID.raw].segmentID
+                    twin = twinID
+                    halfEdges[twinID.raw].twin = heID
+                } else {
+                    segID = undirectedEdgeCount
+                    undirectedEdgeCount += 1
+                }
+
+                halfEdges.append(HalfEdge(
+                    id: heID,
+                    origin: VertexID(raw: originIdx),
+                    twin: twin,
+                    next: nil,
+                    prev: nil,
+                    face: fID,
+                    segmentID: segID,
+                    angle: ang
+                ))
+
+                edgeMap[forwardKey] = heID
+
+                if vertices[originIdx].edge == nil {
+                    vertices[originIdx].edge = heID
+                }
+            }
+
+            // Link next/prev within the loop
+            for i in 0..<loop.count {
+                let heIdx = firstHEIdx + i
+                let nextIdx = firstHEIdx + (i + 1) % loop.count
+                let prevIdx = firstHEIdx + (i + loop.count - 1) % loop.count
+                halfEdges[heIdx].next = HalfEdgeID(raw: nextIdx)
+                halfEdges[heIdx].prev = HalfEdgeID(raw: prevIdx)
+            }
+
+            return HalfEdgeID(raw: firstHEIdx)
+        }
+
+        for def in faceDefinitions {
+            let fID = FaceID(raw: faces.count)
+
+            guard let outerEdge = buildLoop(def.outer, faceID: fID) else {
+                continue
+            }
+
+            let holeEdges = def.holes.compactMap { buildLoop($0, faceID: fID) }
+
+            let outerPts = def.outer.map { points[$0] }
+            let area = Polygon(outerPts).signedArea
+            faces.append(Face(id: fID, edge: outerEdge, holeEdges: holeEdges, signedArea: area))
+        }
     }
 
     // MARK: - Accessors
@@ -325,12 +425,70 @@ extension HalfEdgeMesh {
         return nil
     }
 
-    // MARK: - Face -> polygon(s)
+    // MARK: - Face queries
 
-    /// Return the ordered boundary of `face` as points (no holes).
+    /// Whether this face has clockwise winding (negative signed area), indicating a hole.
+    public func isHole(_ face: FaceID) -> Bool {
+        guard let area = faces[face.raw].signedArea else {
+            return false
+        }
+        return area < 0
+    }
+
+    /// Return the outer boundary of `face` as points.
     public func polygon(for face: FaceID) -> [CGPoint] {
-        guard let start = faces[face.raw].edge else { return [] }
+        guard let start = faces[face.raw].edge else {
+            return []
+        }
         return collectLoop(startEdge: start)
+    }
+
+    /// Return the hole boundaries of `face` as arrays of points.
+    public func holePolygons(for face: FaceID) -> [[CGPoint]] {
+        faces[face.raw].holeEdges.map { collectLoop(startEdge: $0) }
+    }
+
+    /// Return the ordered boundary of `face` as vertex IDs.
+    public func vertexLoop(for face: FaceID) -> [VertexID] {
+        guard let start = faces[face.raw].edge else {
+            return []
+        }
+        var ids: [VertexID] = []
+        var e = start
+        var visited = Set<HalfEdgeID>()
+        while !visited.contains(e) {
+            visited.insert(e)
+            ids.append(halfEdges[e.raw].origin)
+            guard let n = halfEdges[e.raw].next else {
+                break
+            }
+            e = n
+        }
+        if e != start || ids.count < 3 {
+            return []
+        }
+        return ids
+    }
+
+    /// Returns all unique undirected edges as (vertexA, vertexB, segmentID) triples.
+    /// Each undirected edge appears exactly once.
+    public func undirectedEdges() -> [(VertexID, VertexID, ID)] {
+        var seen = Set<ID>()
+        var result: [(VertexID, VertexID, ID)] = []
+        for he in halfEdges {
+            if !seen.contains(he.segmentID) {
+                seen.insert(he.segmentID)
+                let origin = he.origin
+                // dest is twin's origin, or next half-edge's origin via the loop
+                if let twinID = he.twin {
+                    result.append((origin, halfEdges[twinID.raw].origin, he.segmentID))
+                } else if let nextID = he.next {
+                    // For boundary edges, dest is the next half-edge's origin
+                    result.append((origin, halfEdges[nextID.raw].origin, he.segmentID))
+                }
+            }
+        }
+        return result
     }
 
     // MARK: - Internals
