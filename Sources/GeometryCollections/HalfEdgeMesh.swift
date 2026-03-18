@@ -470,6 +470,43 @@ extension HalfEdgeMesh {
         return ids
     }
 
+    /// Returns faces that share an edge with the given face.
+    public func neighborFaces(of face: FaceID) -> [FaceID] {
+        var neighbors = Set<FaceID>()
+        guard let startEdge = faces[face.raw].edge else {
+            return []
+        }
+        // Walk outer boundary
+        var e = startEdge
+        var visited = Set<HalfEdgeID>()
+        while !visited.contains(e) {
+            visited.insert(e)
+            if let twinID = halfEdges[e.raw].twin, let twinFace = halfEdges[twinID.raw].face, twinFace != face {
+                neighbors.insert(twinFace)
+            }
+            guard let n = halfEdges[e.raw].next else {
+                break
+            }
+            e = n
+        }
+        // Walk hole boundaries
+        for holeEdge in faces[face.raw].holeEdges {
+            e = holeEdge
+            visited.removeAll()
+            while !visited.contains(e) {
+                visited.insert(e)
+                if let twinID = halfEdges[e.raw].twin, let twinFace = halfEdges[twinID.raw].face, twinFace != face {
+                    neighbors.insert(twinFace)
+                }
+                guard let n = halfEdges[e.raw].next else {
+                    break
+                }
+                e = n
+            }
+        }
+        return Array(neighbors)
+    }
+
     /// Returns all unique undirected edges as (vertexA, vertexB, segmentID) triples.
     /// Each undirected edge appears exactly once.
     public func undirectedEdges() -> [(VertexID, VertexID, ID)] {
