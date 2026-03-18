@@ -534,6 +534,57 @@ extension HalfEdgeMesh {
         return true
     }
 
+    /// Returns closed loops formed by boundary half-edges (those with no twin).
+    /// Each loop is an array of points tracing one connected boundary.
+    public func boundaryLoops() -> [[CGPoint]] {
+        var visited = Set<HalfEdgeID>()
+        var loops: [[CGPoint]] = []
+
+        // Build a map: for each boundary half-edge's destination vertex, find the next boundary half-edge originating there
+        // A boundary half-edge has no twin.
+        var boundaryFrom: [VertexID: HalfEdgeID] = [:]
+        for he in halfEdges where he.twin == nil {
+            boundaryFrom[he.origin] = he.id
+        }
+
+        for he in halfEdges where he.twin == nil {
+            if visited.contains(he.id) {
+                continue
+            }
+            var loop: [CGPoint] = []
+            var current = he.id
+            while !visited.contains(current) {
+                visited.insert(current)
+                let edge = halfEdges[current.raw]
+                loop.append(vertices[edge.origin.raw].p)
+                // Find destination: walk next pointers until we find another boundary edge
+                // The destination of this half-edge is the origin of the next half-edge in the face loop
+                guard let next = edge.next else {
+                    break
+                }
+                // Walk along face boundary until we hit another boundary half-edge
+                var walker = next
+                var safety = halfEdges.count
+                while halfEdges[walker.raw].twin != nil, safety > 0 {
+                    // This edge has a twin, so it's interior. Cross to the twin's face and continue.
+                    guard let twinNext = halfEdges[halfEdges[walker.raw].twin!.raw].next else {
+                        break
+                    }
+                    walker = twinNext
+                    safety -= 1
+                }
+                if safety == 0 {
+                    break
+                }
+                current = walker
+            }
+            if loop.count >= 3 {
+                loops.append(loop)
+            }
+        }
+        return loops
+    }
+
     /// Returns all unique undirected edges as (vertexA, vertexB, segmentID) triples.
     /// Each undirected edge appears exactly once.
     public func undirectedEdges() -> [(VertexID, VertexID, ID)] {
