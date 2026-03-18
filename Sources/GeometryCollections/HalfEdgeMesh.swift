@@ -507,6 +507,33 @@ extension HalfEdgeMesh {
         return Array(neighbors)
     }
 
+    /// Whether the face is convex (all interior angles < 180°).
+    public func isConvex(_ face: FaceID) -> Bool {
+        let pts = polygon(for: face)
+        guard pts.count >= 3 else {
+            return false
+        }
+        let n = pts.count
+        var sign: Bool?
+        for i in 0..<n {
+            let a = pts[i]
+            let b = pts[(i + 1) % n]
+            let c = pts[(i + 2) % n]
+            let cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
+            if cross != 0 {
+                let positive = cross > 0
+                if let s = sign {
+                    if s != positive {
+                        return false
+                    }
+                } else {
+                    sign = positive
+                }
+            }
+        }
+        return true
+    }
+
     /// Returns all unique undirected edges as (vertexA, vertexB, segmentID) triples.
     /// Each undirected edge appears exactly once.
     public func undirectedEdges() -> [(VertexID, VertexID, ID)] {
