@@ -606,6 +606,127 @@ extension HalfEdgeMesh {
         return result
     }
 
+    // MARK: - Edge deletion
+
+    /// Delete an undirected edge by its segment ID.
+    /// If the edge is interior (shared by two faces), the two faces are merged into one.
+    /// If the edge is boundary (one face), it is removed from that face.
+    /// The half-edges are marked as deleted (face = nil, next/prev = nil).
+    /// Deleted elements remain in the arrays (indices are stable) but are disconnected.
+    public mutating func deleteEdge(segmentID: ID) where ID: Equatable {
+        // Find the two half-edges for this undirected edge
+        var heIndices: [Int] = []
+        for i in halfEdges.indices where halfEdges[i].segmentID == segmentID {
+            heIndices.append(i)
+        }
+        guard !heIndices.isEmpty else {
+            return
+        }
+
+        let heA = heIndices[0]
+        let heB = heIndices.count > 1 ? heIndices[1] : nil
+
+        let prevA = halfEdges[heA].prev
+        let nextA = halfEdges[heA].next
+        let faceA = halfEdges[heA].face
+
+        // Rewire around heA: prev(heA).next = next(heA), next(heA).prev = prev(heA)
+        if let p = prevA, let n = nextA {
+            halfEdges[p.raw].next = n
+            halfEdges[n.raw].prev = p
+        }
+
+        if let heB {
+            let prevB = halfEdges[heB].prev
+            let nextB = halfEdges[heB].next
+            let faceB = halfEdges[heB].face
+
+            // Rewire around heB
+            if let p = prevB, let n = nextB {
+                halfEdges[p.raw].next = n
+                halfEdges[n.raw].prev = p
+            }
+
+            // If interior edge: merge faces. Keep faceA, reassign faceB's half-edges to faceA.
+            if let fA = faceA, let fB = faceB, fA != fB {
+                // Walk faceB's loop and reassign to faceA
+                if let startB = nextB {
+                    var e = startB
+                    var visited = Set<HalfEdgeID>()
+                    while !visited.contains(e) {
+                        visited.insert(e)
+                        halfEdges[e.raw].face = fA
+                        guard let n = halfEdges[e.raw].next else {
+                            break
+                        }
+                        e = n
+                        if e == startB {
+                            break
+                        }
+                    }
+                }
+
+                // Now stitch the two loops together
+                // prevA.next should go to nextB, prevB.next should go to nextA
+                if let pA = prevA, let nB = nextB {
+                    halfEdges[pA.raw].next = nB
+                    halfEdges[nB.raw].prev = pA
+                }
+                if let pB = prevB, let nA = nextA {
+                    halfEdges[pB.raw].next = nA
+                    halfEdges[nA.raw].prev = pB
+                }
+
+                // Update faceA's edge pointer (in case it pointed to the deleted edge)
+                if let nA = nextA {
+                    faces[fA.raw].edge = nA
+                }
+
+                // Mark faceB as deleted
+                faces[fB.raw].edge = nil
+
+                // Recompute signed area for merged face
+                let pts = polygon(for: fA)
+                faces[fA.raw].signedArea = pts.count >= 3 ? Polygon(pts).signedArea : nil
+            } else if let fA = faceA {
+                // Same face or boundary — update face edge pointer
+                if let n = nextA {
+                    faces[fA.raw].edge = n
+                }
+            }
+
+            // Mark heB as deleted
+            halfEdges[heB].twin = nil
+            halfEdges[heB].next = nil
+            halfEdges[heB].prev = nil
+            halfEdges[heB].face = nil
+        } else {
+            // Boundary edge (no twin) — update face edge pointer
+            if let fA = faceA, let n = nextA {
+                faces[fA.raw].edge = n
+            }
+        }
+
+        // Mark heA as deleted
+        halfEdges[heA].twin = nil
+        halfEdges[heA].next = nil
+        halfEdges[heA].prev = nil
+        halfEdges[heA].face = nil
+
+        // Update vertex edge pointers if they pointed to deleted half-edges
+        let originA = halfEdges[heA].origin
+        if vertices[originA.raw].edge?.raw == heA {
+            // Find another outgoing edge from this vertex
+            vertices[originA.raw].edge = halfEdges.first(where: { $0.origin == originA && $0.next != nil })?.id
+        }
+        if let heB {
+            let originB = halfEdges[heB].origin
+            if vertices[originB.raw].edge?.raw == heB {
+                vertices[originB.raw].edge = halfEdges.first(where: { $0.origin == originB && $0.next != nil })?.id
+            }
+        }
+    }
+
     // MARK: - Internals
 
     private func collectLoop(startEdge: HalfEdgeID) -> [CGPoint] {
