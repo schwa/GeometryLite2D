@@ -10,7 +10,7 @@ public struct HalfEdgeMesh<ID: Hashable> {
 
     public struct Vertex {
         public let id: VertexID
-        public let p: CGPoint
+        public var p: CGPoint
         public var edge: HalfEdgeID? // one outgoing
     }
 
@@ -33,7 +33,7 @@ public struct HalfEdgeMesh<ID: Hashable> {
         public var signedArea: CGFloat? // computed after labeling (outer boundary only)
     }
 
-    public private(set) var vertices: [Vertex] = []
+    public var vertices: [Vertex] = []
     public private(set) var halfEdges: [HalfEdge] = []
     public private(set) var faces: [Face] = []
 
