@@ -223,9 +223,10 @@ public func interiorVoronoiCells(
     return points.map { point in
         let pointEdges = siteEdges[point] ?? []
 
-        let cellEdges = pointEdges.filter {
+        let filteredEdges = pointEdges.filter {
             $0.isSegment && $0.leftSite != point && $0.rightSite != point
-        }.compactMap { edge -> LineSegment? in
+        }
+        let cellEdges = filteredEdges.compactMap { edge -> LineSegment? in
             if case let .segment(segment) = edge.kind {
                 return segment
             }

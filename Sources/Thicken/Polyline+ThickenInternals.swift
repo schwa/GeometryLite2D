@@ -123,8 +123,13 @@ internal func thickenedSegment(
     if let joint = startJoint {
         let cross = joint.otherDirection.cross(dir)
         let adjusted = adjustedEndpoints(
-            at: start, direction: dir, normal: normal, joint: joint,
-            segmentLength: segment.length, width: width, halfWidth: halfWidth,
+            at: start,
+            direction: dir,
+            normal: normal,
+            joint: joint,
+            segmentLength: segment.length,
+            width: width,
+            halfWidth: halfWidth,
             leftIsOuter: cross < 0
         )
         startLeft = adjusted.left
@@ -135,8 +140,13 @@ internal func thickenedSegment(
     if let joint = endJoint {
         let cross = dir.cross(joint.otherDirection)
         let adjusted = adjustedEndpoints(
-            at: end, direction: dir, normal: normal, joint: joint,
-            segmentLength: segment.length, width: width, halfWidth: halfWidth,
+            at: end,
+            direction: dir,
+            normal: normal,
+            joint: joint,
+            segmentLength: segment.length,
+            width: width,
+            halfWidth: halfWidth,
             leftIsOuter: cross < 0
         )
         endLeft = adjusted.left

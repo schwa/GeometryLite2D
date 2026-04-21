@@ -132,8 +132,14 @@ struct KneePitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let pit = kneePit(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width)
+        let pit = kneePit(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width
+        )
 
         #expect(pit.distance(to: center) > 0)
         #expect(pit.distance(to: center) < width)
@@ -145,8 +151,14 @@ struct KneePitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: -1)
 
-        let pit = kneePit(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width)
+        let pit = kneePit(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width
+        )
 
         #expect(pit.distance(to: center) > 0)
         #expect(pit.distance(to: center) < width)
@@ -158,8 +170,14 @@ struct KneePitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: -0.9, dy: 0.1).normalized
 
-        let pit = kneePit(center: center, direction1: dir1, direction2: dir2,
-                          length1: 50, length2: 50, width: width)
+        let pit = kneePit(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 50,
+            length2: 50,
+            width: width
+        )
 
         #expect(pit.distance(to: center) < 1)
     }
@@ -170,8 +188,14 @@ struct KneePitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let pit = kneePit(center: center, direction1: dir1, direction2: dir2,
-                          length1: 5, length2: 5, width: width)
+        let pit = kneePit(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 5,
+            length2: 5,
+            width: width
+        )
 
         #expect(pit.distance(to: center) <= 5)
     }
@@ -189,8 +213,15 @@ struct KneeCapTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let cap = kneeCap(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width, style: .bevel)
+        let cap = kneeCap(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width,
+            style: .bevel
+        )
         #expect(cap != nil)
     }
 
@@ -199,8 +230,15 @@ struct KneeCapTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let cap = kneeCap(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width, style: .round)
+        let cap = kneeCap(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width,
+            style: .round
+        )
         #expect(cap != nil)
     }
 
@@ -209,8 +247,15 @@ struct KneeCapTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let cap = kneeCap(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width, style: .bevel)!
+        let cap = kneeCap(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width,
+            style: .bevel
+        )!
         let bounds = cap.boundingRect
 
         #expect(bounds.width <= width * 2)
@@ -222,8 +267,15 @@ struct KneeCapTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let cap = kneeCap(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width, style: .round)!
+        let cap = kneeCap(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width,
+            style: .round
+        )!
         let bounds = cap.boundingRect
 
         #expect(bounds.width <= width * 2)
@@ -235,8 +287,15 @@ struct KneeCapTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let cap = kneeCap(center: center, direction1: dir1, direction2: dir2,
-                          length1: 100, length2: 100, width: width, style: .miter)
+        let cap = kneeCap(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            length1: 100,
+            length2: 100,
+            width: width,
+            style: .miter
+        )
         #expect(cap == nil)
     }
 }
@@ -253,8 +312,13 @@ struct MiterLimitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: 0, dy: 1)
 
-        let exceeded = miterLimitExceeded(center: center, direction1: dir1, direction2: dir2,
-                                          width: width, limit: 4)
+        let exceeded = miterLimitExceeded(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            width: width,
+            limit: 4
+        )
         #expect(!exceeded)
     }
 
@@ -263,8 +327,13 @@ struct MiterLimitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: -0.9, dy: 0.2).normalized
 
-        let exceeded = miterLimitExceeded(center: center, direction1: dir1, direction2: dir2,
-                                          width: width, limit: 4)
+        let exceeded = miterLimitExceeded(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            width: width,
+            limit: 4
+        )
         #expect(exceeded)
     }
 
@@ -273,8 +342,13 @@ struct MiterLimitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: -0.5, dy: 0.5).normalized
 
-        let exceeded = miterLimitExceeded(center: center, direction1: dir1, direction2: dir2,
-                                          width: width, limit: 100)
+        let exceeded = miterLimitExceeded(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            width: width,
+            limit: 100
+        )
         #expect(!exceeded)
     }
 
@@ -283,8 +357,13 @@ struct MiterLimitTests {
         let dir1 = CGVector(dx: 1, dy: 0)
         let dir2 = CGVector(dx: -0.5, dy: 0.866).normalized
 
-        let exceeded = miterLimitExceeded(center: center, direction1: dir1, direction2: dir2,
-                                          width: width, limit: 1)
+        let exceeded = miterLimitExceeded(
+            center: center,
+            direction1: dir1,
+            direction2: dir2,
+            width: width,
+            limit: 1
+        )
         #expect(exceeded)
     }
 }

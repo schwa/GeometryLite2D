@@ -574,7 +574,7 @@ struct GraphDemoView: DemoView {
                 var x = startX
                 while x <= endX {
                     let intX = Int(x)
-                    if intX != 0 && intX % Int(majorGridSpacing) != 0 {
+                    if intX != 0 && !intX.isMultiple(of: Int(majorGridSpacing)) {
                         var path = Path()
                         path.move(to: CGPoint(x: x, y: roi.minY))
                         path.addLine(to: CGPoint(x: x, y: roi.maxY))
@@ -586,7 +586,7 @@ struct GraphDemoView: DemoView {
                 var y = startY
                 while y <= endY {
                     let intY = Int(y)
-                    if intY != 0 && intY % Int(majorGridSpacing) != 0 {
+                    if intY != 0 && !intY.isMultiple(of: Int(majorGridSpacing)) {
                         var path = Path()
                         path.move(to: CGPoint(x: roi.minX, y: y))
                         path.addLine(to: CGPoint(x: roi.maxX, y: y))
@@ -604,7 +604,7 @@ struct GraphDemoView: DemoView {
                 var x = startX
                 while x <= endX {
                     let intX = Int(x)
-                    if intX != 0 && intX % Int(majorGridSpacing) == 0 {
+                    if intX != 0 && intX.isMultiple(of: Int(majorGridSpacing)) {
                         var path = Path()
                         path.move(to: CGPoint(x: x, y: roi.minY))
                         path.addLine(to: CGPoint(x: x, y: roi.maxY))
@@ -616,7 +616,7 @@ struct GraphDemoView: DemoView {
                 var y = startY
                 while y <= endY {
                     let intY = Int(y)
-                    if intY != 0 && intY % Int(majorGridSpacing) == 0 {
+                    if intY != 0 && intY.isMultiple(of: Int(majorGridSpacing)) {
                         var path = Path()
                         path.move(to: CGPoint(x: roi.minX, y: y))
                         path.addLine(to: CGPoint(x: roi.maxX, y: y))
@@ -730,10 +730,10 @@ struct GraphDemoView: DemoView {
                 shiftKeyDown: shiftKeyDown,
                 snapTargets: allEndpoints,
                 snap: snapClosure
-            )                { line in
-                    let newID = UUID().uuidString
-                    segments.append(TypedLineSegment(id: newID, type: "primary", segment: line))
-                })
+            ) { line in
+                let newID = UUID().uuidString
+                segments.append(TypedLineSegment(id: newID, type: "primary", segment: line))
+            })
             .gesture(
                 MagnifyGesture()
                     .onChanged { value in
