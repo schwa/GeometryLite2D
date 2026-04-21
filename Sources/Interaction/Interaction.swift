@@ -40,21 +40,21 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
                 ForEach(Array(elementHandles), id: \.key) { handleID, _ in
                     let binding = Binding<CGPoint>(
                         get: {
-                            let modelPosition = self.handles[elementID]?[handleID]?.position ?? .zero
+                            let modelPosition = handles[elementID]?[handleID]?.position ?? .zero
                             return modelPosition.applying(transform)
                         },
                         set: { screenPosition in
                             let modelPosition = screenPosition.applying(transform.inverted())
                             if let elementIndex = elements.firstIndex(where: { $0[keyPath: id] == elementID }) {
                                 // Update handle position in state
-                                self.handles[elementID]?[handleID]?.position = modelPosition
+                                handles[elementID]?[handleID]?.position = modelPosition
 
                                 // Get all handles for this element
-                                if var elementHandles = self.handles[elementID] {
+                                if var elementHandles = handles[elementID] {
                                     // Tell element which handle changed, allowing it to update other handles
                                     elements[elementIndex].handleDidChange(id: handleID, handles: &elementHandles)
                                     // Save the potentially modified handles back
-                                    self.handles[elementID] = elementHandles
+                                    handles[elementID] = elementHandles
                                 }
                             }
                         }
@@ -111,5 +111,4 @@ public struct InteractiveCanvas <Element, ElementID>: View where Element: Intera
     var elementIDs: [ElementID] {
         elements.map { $0[keyPath: id] }
     }
-
 }

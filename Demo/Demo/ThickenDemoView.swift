@@ -2,8 +2,8 @@ import DemoKit
 import Geometry
 import GeometryCollections
 import Interaction
-import Thicken
 import SwiftUI
+import Thicken
 
 struct ThickenDemoView: DemoView {
     static var metadata = DemoMetadata(

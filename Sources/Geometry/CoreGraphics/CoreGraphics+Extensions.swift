@@ -82,7 +82,7 @@ public extension CGPoint {
     func angle(to other: CGPoint) -> CGFloat {
         atan2(other.y - y, other.x - x)
     }
-    
+
     /// Rotates this point around a center point by the given angle
     func rotated(around center: CGPoint, by angle: Angle) -> CGPoint {
         let cosAngle = cos(angle.radians)

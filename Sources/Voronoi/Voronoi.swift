@@ -34,6 +34,7 @@ extension VoronoiEdge.Kind: CustomDebugStringConvertible {
         switch self {
         case .segment(let segment):
             "\(segment)"
+
         case .ray(let ray):
             "\(ray)"
         }

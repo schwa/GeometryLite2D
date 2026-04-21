@@ -144,6 +144,7 @@ struct SegmentIntersectionTests {
             #expect(p.isApproximatelyEqual(to: CGPoint(x: 2, y: 3), absoluteTolerance: 1e-10))
             #expect(t1.isApproximatelyEqual(to: 0.7, absoluteTolerance: 1e-10)) // (2 - (-5)) / 10 = 0.7
             #expect(t2.isApproximatelyEqual(to: 0.8, absoluteTolerance: 1e-10)) // (3 - (-5)) / 10 = 0.8
+
         case .none:
             Issue.record("Expected intersection for vertical and horizontal segments")
         }

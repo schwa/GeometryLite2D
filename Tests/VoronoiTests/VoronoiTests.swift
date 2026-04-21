@@ -1,11 +1,11 @@
-import Testing
 import CoreGraphics
 import Geometry
+import Testing
 @testable import Voronoi
 
 @Test func testDelaunayTriangulationBasic() {
     let points: [CGPoint] = [
-        CGPoint(x: 0, y: 0),
+        CGPoint.zero,
         CGPoint(x: 1, y: 0),
         CGPoint(x: 0.5, y: 1)
     ]
@@ -16,7 +16,7 @@ import Geometry
 
 @Test func testDelaunayTriangulationSquare() {
     let points: [CGPoint] = [
-        CGPoint(x: 0, y: 0),
+        CGPoint.zero,
         CGPoint(x: 1, y: 0),
         CGPoint(x: 1, y: 1),
         CGPoint(x: 0, y: 1)
@@ -43,7 +43,7 @@ import Geometry
 
 @Test func testTriangleCircumcircle() {
     let triangle = Triangle(
-        a: CGPoint(x: 0, y: 0),
+        a: CGPoint.zero,
         b: CGPoint(x: 1, y: 0),
         c: CGPoint(x: 0.5, y: 1)
     )

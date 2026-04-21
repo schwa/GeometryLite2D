@@ -9,10 +9,10 @@ public struct SplitOptions: OptionSet, Sendable {
     }
 
     /// Split segments at T-junctions (where an endpoint of one segment lies on another segment's interior)
-    public static let tJunctions = SplitOptions(rawValue: 1 << 0)
+    public static let tJunctions = Self(rawValue: 1 << 0)
 
     /// Split segments at crossing intersections (where two segments cross but neither endpoint is at the intersection)
-    public static let crossings = SplitOptions(rawValue: 1 << 1)
+    public static let crossings = Self(rawValue: 1 << 1)
 
     /// Split at both T-junctions and crossings
     public static let all: SplitOptions = [.tJunctions, .crossings]

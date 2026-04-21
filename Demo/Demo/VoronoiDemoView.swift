@@ -45,7 +45,7 @@ struct VoronoiDemoView: DemoView {
     @State var size: CGSize = .zero
     @State var zoom: CGFloat = 1.0
     @State var gestureZoom: CGFloat = 1.0
-    @State var options: Options = Options()
+    @State var options = Options()
 
     var body: some View {
         let scale = min(size.width, size.height) * zoom * gestureZoom
@@ -137,7 +137,7 @@ struct VoronoiDemoView: DemoView {
         points.append(contentsOf: newPoints)
     }
 
-    func render(context: GraphicsContext, size: CGSize, scale: CGFloat) {
+    func render(context: GraphicsContext, size _: CGSize, scale: CGFloat) {
         let transform = CGAffineTransform(scaleX: scale, y: scale)
 
         // Draw Voronoi cells (colored regions)
@@ -189,7 +189,7 @@ struct VoronoiDemoView: DemoView {
         if options.drawVoronoi {
             for edge in voronoiEdgeList {
                 context.stroke(
-                    Path(edge, maxRayLength: 1000).applying(transform),
+                    Path(edge, maxRayLength: 1_000).applying(transform),
                     with: .color(.blue),
                     lineWidth: 1.0
                 )

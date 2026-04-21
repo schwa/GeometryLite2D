@@ -13,18 +13,16 @@ private struct Lab {
 private func srgbToLinear(_ c: Double) -> Double {
     if c <= 0.04045 {
         return c / 12.92
-    } else {
-        return pow((c + 0.055) / 1.055, 2.4)
     }
+    return pow((c + 0.055) / 1.055, 2.4)
 }
 
 // MARK: - linear → sRGB
 private func linearToSrgb(_ c: Double) -> Double {
     if c <= 0.0031308 {
         return 12.92 * c
-    } else {
-        return 1.055 * pow(c, 1.0 / 2.4) - 0.055
     }
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055
 }
 
 // MARK: - RGB → Lab (D65)
@@ -68,7 +66,6 @@ private func labDistance(_ a: Lab, _ b: Lab) -> Double {
 
 // MARK: - Glasbey palette
 struct GlasbeyPalette {
-
     /// Generate a Glasbey-style palette
     /// - Parameters:
     ///   - count: Number of colors desired
@@ -77,7 +74,6 @@ struct GlasbeyPalette {
         count: Int,
         candidateResolution: Int = 16
     ) -> [CGColor] {
-
         precondition(candidateResolution >= 4)
 
         // Build candidate RGB space

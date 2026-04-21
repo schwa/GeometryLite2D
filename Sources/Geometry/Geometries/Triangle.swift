@@ -45,8 +45,8 @@ public extension Triangle {
 
     func hasVertex(_ point: CGPoint, absoluteTolerance: CGFloat = 0) -> Bool {
         a.isApproximatelyEqual(to: point, absoluteTolerance: absoluteTolerance) ||
-        b.isApproximatelyEqual(to: point, absoluteTolerance: absoluteTolerance) ||
-        c.isApproximatelyEqual(to: point, absoluteTolerance: absoluteTolerance)
+            b.isApproximatelyEqual(to: point, absoluteTolerance: absoluteTolerance) ||
+            c.isApproximatelyEqual(to: point, absoluteTolerance: absoluteTolerance)
     }
 
     func contains(_ point: CGPoint) -> Bool {
@@ -96,11 +96,11 @@ public extension Triangle {
         let area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)
         if area > 0 {
             return .counterClockwise
-        } else if area < 0 {
-            return .clockwise
-        } else {
-            return .colinear
         }
+        if area < 0 {
+            return .clockwise
+        }
+        return .colinear
     }
 
     enum Vertex {

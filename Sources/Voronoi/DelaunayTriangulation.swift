@@ -29,7 +29,7 @@ public func delaunayTriangulation(_ points: [CGPoint], superTriangle: Triangle? 
             }
         }
 
-        let polygonEdges = edgeCount.filter { $0.value == 1 }.map { $0.key }
+        let polygonEdges = edgeCount.filter { $0.value == 1 }.map(\.key)
 
         for triangle in badTriangles {
             triangulation.remove(triangle)
@@ -59,7 +59,7 @@ public func delaunayTriangulation(_ points: [CGPoint], superTriangle: Triangle? 
 /// Creates a large triangle that fully encloses the input points,
 /// suitable for initializing Bowyer-Watson triangulation with extra margin for circumcircles.
 /// Time complexity: O(n)
-func makeSuperTriangle(from points: [CGPoint], scaleFactor: CGFloat = 1000) -> Triangle {
+func makeSuperTriangle(from points: [CGPoint], scaleFactor: CGFloat = 1_000) -> Triangle {
     guard let first = points.first else {
         fatalError("Point set must not be empty")
     }

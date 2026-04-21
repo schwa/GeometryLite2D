@@ -98,5 +98,3 @@ extension Ray: PathRepresentable {
         return path
     }
 }
-
-

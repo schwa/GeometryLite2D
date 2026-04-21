@@ -1,5 +1,5 @@
-import SwiftUI
 import Geometry
+import SwiftUI
 
 // MARK: - Triangle Path
 
@@ -19,13 +19,14 @@ public extension Path {
 public extension Path {
     /// Creates a path from a Voronoi edge.
     /// For rays, the path extends to `maxRayLength` from the origin.
-    init(_ edge: VoronoiEdge, maxRayLength: CGFloat = 1000) {
+    init(_ edge: VoronoiEdge, maxRayLength: CGFloat = 1_000) {
         switch edge.kind {
         case .segment(let segment):
             self.init { path in
                 path.move(to: segment.start)
                 path.addLine(to: segment.end)
             }
+
         case .ray(let ray):
             let normalized = ray.direction.normalized
             let end = CGPoint(

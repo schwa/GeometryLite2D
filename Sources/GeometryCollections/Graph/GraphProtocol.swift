@@ -1,8 +1,6 @@
 import Collections
-import OrderedCollections
 import Foundation
 import OrderedCollections
-
 public protocol EdgeProtocol: Hashable {
     associatedtype Vertex: Hashable
     var from: Vertex { get }

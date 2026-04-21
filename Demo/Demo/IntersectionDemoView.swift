@@ -1,8 +1,8 @@
 import DemoKit
 import Geometry
+import Interaction
 import SwiftUI
 import Visualization
-import Interaction
 
 // MARK: -
 
@@ -68,6 +68,7 @@ struct IntersectionDemoView: DemoView {
 
                     case (.lineSegment(let lhs), .lineSegment(let rhs)):
                         intersections.append(intersect(lhs, rhs))
+
                     //                    case (.circle(let lhs), .circle(let rhs)):
                     //                        intersections.append(intersect(lhs, rhs))
                     default:

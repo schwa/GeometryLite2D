@@ -38,9 +38,9 @@ struct GraphDemoView: DemoView {
 
     struct SnapOptions: OptionSet {
         let rawValue: Int
-        static let endpoints = SnapOptions(rawValue: 1 << 0)
-        static let lines = SnapOptions(rawValue: 1 << 1)
-        static let grid = SnapOptions(rawValue: 1 << 2)
+        static let endpoints = Self(rawValue: 1 << 0)
+        static let lines = Self(rawValue: 1 << 1)
+        static let grid = Self(rawValue: 1 << 2)
     }
 
     @State private var currentTool: Tool = .select
@@ -62,7 +62,7 @@ struct GraphDemoView: DemoView {
     @State private var shortIDs: [AnyHashable: Int] = [:]
 
     // Region of interest - the world coordinate space we're viewing
-    @State private var regionOfInterest: CGRect = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+    @State private var regionOfInterest = CGRect(x: 0, y: 0, width: 1_000, height: 1_000)
 
     // Grid settings
     @State private var minorGridSpacing: CGFloat = 10
@@ -77,7 +77,7 @@ struct GraphDemoView: DemoView {
     // Gesture state
     @State private var lastScale: CGFloat = 1.0
     @State private var lastRotation: Angle = .zero
-    @State private var viewSize: CGSize = CGSize(width: 600, height: 400)
+    @State private var viewSize = CGSize(width: 600, height: 400)
     @State private var scrollPosition: ScrollPosition = .init(point: .zero)
 
     private let snapRadius: CGFloat = 10
@@ -101,14 +101,19 @@ struct GraphDemoView: DemoView {
         switch colorMode {
         case .none:
             return .black
+
         case .byID:
             return Color(glasbeyIndex: abs(segment.id.hashValue))
+
         case .byType:
             return Color(glasbeyIndex: abs(segment.type.hashValue))
+
         case .byLength:
             return colorForLength(segment.segment)
+
         case .byDegree:
             return colorForDegree(segment.segment)
+
         case .byComponent:
             return colorForComponent(segment.segment)
         }
@@ -146,7 +151,7 @@ struct GraphDemoView: DemoView {
         for (index, componentEdges) in components.enumerated() {
             for edge in componentEdges {
                 if (edge.from == segment.start && edge.to == segment.end) ||
-                   (edge.from == segment.end && edge.to == segment.start) {
+                    (edge.from == segment.end && edge.to == segment.start) {
                     return Color(glasbeyIndex: index)
                 }
             }
@@ -256,8 +261,6 @@ struct GraphDemoView: DemoView {
         return CGPoint(x: segment.start.x + t * dx, y: segment.start.y + t * dy)
     }
 
-
-
     private var snapClosure: ((CGPoint, [CGPoint]) -> CGPoint)? {
         // Option key suppresses snapping
         guard !optionKeyDown, !snapOptions.isEmpty else { return nil }
@@ -325,18 +328,23 @@ struct GraphDemoView: DemoView {
         switch colorMode {
         case .none:
             EmptyView()
+
         case .byID:
             colorKeyList(title: "By ID", items: segments.map { (displayID(for: $0.id), Color(glasbeyIndex: abs($0.id.hashValue))) })
+
         case .byType:
             let types = Set(segments.map(\.type)).sorted()
             colorKeyList(title: "By Type", items: types.map { ($0, Color(glasbeyIndex: abs($0.hashValue))) })
+
         case .byLength:
             colorKeyList(title: "By Length", items: [("Short", shortColor), ("Long", longColor)])
+
         case .byDegree:
             let degrees = Set(segments.flatMap { seg in
                 [graph.neighbors(of: seg.segment.start).count, graph.neighbors(of: seg.segment.end).count]
             }).sorted()
             colorKeyList(title: "By Degree", items: degrees.map { ("\($0)", Color(glasbeyIndex: $0)) })
+
         case .byComponent:
             let componentCount = graph.connectedComponentsOfEdges().count
             colorKeyList(title: "By Component", items: (0..<componentCount).map { ("Component \($0 + 1)", Color(glasbeyIndex: $0)) })
@@ -549,7 +557,7 @@ struct GraphDemoView: DemoView {
 
     @ViewBuilder
     private var gridCanvas: some View {
-        Canvas { context, size in
+        Canvas { context, _ in
             let roi = regionOfInterest
             let lineWidth: CGFloat = 1 / scale
 
@@ -721,12 +729,11 @@ struct GraphDemoView: DemoView {
                 transform: canvasTransform,
                 shiftKeyDown: shiftKeyDown,
                 snapTargets: allEndpoints,
-                snap: snapClosure,
-                onInsertLine: { line in
+                snap: snapClosure
+            )                { line in
                     let newID = UUID().uuidString
                     segments.append(TypedLineSegment(id: newID, type: "primary", segment: line))
-                }
-            ))
+                })
             .gesture(
                 MagnifyGesture()
                     .onChanged { value in
@@ -839,7 +846,7 @@ struct GraphDemoView: DemoView {
             }
             ToolbarItem(placement: .principal) {
                 Button {
-                    regionOfInterest = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+                    regionOfInterest = CGRect(x: 0, y: 0, width: 1_000, height: 1_000)
                     scale = 1.0
                     lastScale = 1.0
                     rotation = .zero
@@ -991,6 +998,7 @@ private struct ToolModifier: ViewModifier {
                 transform: transform,
                 shiftKeyDown: shiftKeyDown
             )
+
         case .insertLine:
             content.insertLineTool(
                 transform: transform,

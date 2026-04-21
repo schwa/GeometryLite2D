@@ -1,8 +1,8 @@
 import CoreGraphics
 import Geometry
-@testable import Thicken
 import SwiftUI
 import Testing
+@testable import Thicken
 
 // MARK: - Test Helpers
 
@@ -495,7 +495,7 @@ struct JunctionMiterLimitTests {
     func junctionMiterHighLimit() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 300]]
         let paths = Junction(center: center, vertices: endpoints).thickened(width: width,
-                             joinStyle: .miter(limit: 100))
+                                                                            joinStyle: .miter(limit: 100))
         #expect(paths.count >= 3)
     }
 
@@ -503,7 +503,7 @@ struct JunctionMiterLimitTests {
     func junctionMiterLowLimit() {
         let endpoints: [CGPoint] = [[100, 200], [300, 200], [200, 250]]
         let paths = Junction(center: center, vertices: endpoints).thickened(width: width,
-                             joinStyle: .miter(limit: 1))
+                                                                            joinStyle: .miter(limit: 1))
         #expect(paths.count >= 3)
     }
 }

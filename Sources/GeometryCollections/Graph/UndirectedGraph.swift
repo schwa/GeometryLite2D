@@ -1,7 +1,5 @@
 import Collections
 import OrderedCollections
-import OrderedCollections
-
 public struct UndirectedGraph<Vertex: Hashable> {
     private var base: DirectedGraph<Vertex>
 
