@@ -8,6 +8,8 @@ public struct SplitID<ParentID: Hashable>: Hashable {
     public let ordinal: Int
 }
 
+extension SplitID: Sendable where ParentID: Sendable {}
+
 extension SplitID: CustomStringConvertible {
     public var description: String {
         "\(parent)/\(ordinal)"
