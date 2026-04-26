@@ -126,3 +126,30 @@ Fix options:
 2. After walking, normalize the resulting polygon to a canonical rotation (e.g. rotate so the lexicographically smallest vertex is first).
 
 ---
+
+## 7: resolveTJunctions: non-deterministic Dictionary iteration
+
++++
+status: closed
+priority: high
+kind: bug
+created: 2026-04-26T00:47:06Z
+updated: 2026-04-26T00:47:13Z
+closed: 2026-04-26T00:47:13Z
++++
+
+`Sources/Geometry/Algorithms/TJunctions.swift` iterated regular `Dictionary` collections in the resolution loop:
+
+- `var segmentMap: [LineSegment: [LineSegment]]` (outer + inner loop)
+- `for (original, subSegments) in segmentMap`
+- `for (_, otherSegments) in segmentMap` (nested)
+
+Hash-seed-randomized iteration order combined with floating-point split math produced non-deterministic output: split sequences differed run-to-run, and the order of resulting segments in the value arrays varied.
+
+Fixed by switching internal storage to `OrderedDictionary` (swift-collections, already a dep) and converting back to `Dictionary` at the return boundary to preserve the public API.
+
+Companion to #2.
+
+- `2026-04-26T00:47:13Z`: Fixed: switched to OrderedDictionary internally.
+
+---

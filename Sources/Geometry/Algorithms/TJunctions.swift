@@ -1,4 +1,5 @@
 import CoreGraphics
+import OrderedCollections
 
 /// Options for controlling segment splitting behavior.
 public struct SplitOptions: OptionSet, Sendable {
@@ -27,8 +28,11 @@ public struct SplitOptions: OptionSet, Sendable {
 ///   - maxIterations: The maximum number of iterations to attempt resolving intersections.
 /// - Returns: A dictionary mapping each original `LineSegment` to an array of resulting `LineSegment`s after resolution.
 public func resolveTJunctions(segments: [LineSegment], options: SplitOptions = .tJunctions, absoluteTolerance: CGFloat, maxIterations: Int = 20) -> [LineSegment: [LineSegment]] {
-    // Initialize the mapping from original segments to themselves
-    var segmentMap: [LineSegment: [LineSegment]] = [:]
+    // Initialize the mapping from original segments to themselves.
+    // Use OrderedDictionary so iteration order is deterministic across processes
+    // (regular Dictionary iteration is hash-seed-randomized, which combined with
+    // floating-point split math produced non-deterministic output).
+    var segmentMap: OrderedDictionary<LineSegment, [LineSegment]> = [:]
     for segment in segments {
         segmentMap[segment] = [segment]
     }
@@ -36,7 +40,7 @@ public func resolveTJunctions(segments: [LineSegment], options: SplitOptions = .
     var iteration = 0
     while changed && iteration < maxIterations {
         changed = false
-        var newMap: [LineSegment: [LineSegment]] = [:]
+        var newMap: OrderedDictionary<LineSegment, [LineSegment]> = [:]
         for (original, subSegments) in segmentMap {
             var updatedSubsegments: [LineSegment] = []
             for segment in subSegments {
@@ -88,5 +92,5 @@ public func resolveTJunctions(segments: [LineSegment], options: SplitOptions = .
         // Warning: max T-junction resolution iterations reached
     }
 
-    return segmentMap
+    return Dictionary(uniqueKeysWithValues: segmentMap.elements.map { ($0.key, $0.value) })
 }
